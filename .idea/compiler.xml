@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ormapper" target="1.5" />
+      <module name="ormapper" target="12" />
     </bytecodeTargetLevel>
   </component>
 </project>
