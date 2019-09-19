@@ -15,11 +15,20 @@ public class DatabaseConnectionFactory {
      * @return
      */
     public DatabaseConnection create(RDBMS rdbmsType, String connectionString) {
+
+        if(rdbmsType == null) {
+            throw new ORMesiConnectionException("Unsupported RDBMS");
+        }
+
+        if(connectionString == null || connectionString.length() == 0) {
+            throw new ORMesiConnectionException("Invalid connection string");
+        }
+
         switch (rdbmsType) {
             case SQLITE:
                 return new SQLiteConnection(connectionString);
             case MSSQL:
-                throw new RuntimeException("missing impl for mssql");
+                return new MSSQLConnection(connectionString);
             default:
                 throw new ORMesiConnectionException("Unsupported RDBMS");
         }
