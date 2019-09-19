@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * Base class for connections to different rdbm systems
  */
-abstract class DatabaseConnection implements DatabaseConnector {
+public abstract class DatabaseConnection implements DatabaseConnector {
 
     private final String DRIVER_CLASS_NAME;
     protected final String JDBC_URL;
