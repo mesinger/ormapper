@@ -10,7 +10,7 @@ import mesi.orm.exception.ORMesiPersistenceException;
  * Every persistance manager has to inherit from this base class.
  * Database annotation is required
  */
-public abstract class PersistenceManager {
+public abstract class PersistenceManager implements PersistenceOperations {
 
     private DatabaseConnectionFactory databaseConnectionFactory = new DatabaseConnectionFactory();
     @Getter(AccessLevel.PROTECTED)
@@ -46,5 +46,19 @@ public abstract class PersistenceManager {
                         annotation.system(),
                         annotation.connectionString()
                 );
+    }
+
+    @Override
+    public void persist(Object o) {
+
+        if(!PersistenceOperations.isObjectPersistent(o)) {
+            throw new ORMesiPersistenceException("Object of type " + o.getClass().getName() + " misses the " + Persistent.class.getName() + " annotation");
+        }
+
+        if(!PersistenceOperations.hasPersistentObjectIdentification(o)) {
+            throw new ORMesiPersistenceException("Persistent objects need exactly one member annotated with " + Id.class.getName());
+        }
+
+        throw new RuntimeException("not finished");
     }
 }
