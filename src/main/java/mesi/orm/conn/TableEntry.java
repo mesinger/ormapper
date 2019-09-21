@@ -11,7 +11,6 @@ import java.util.Arrays;
  * table entry used while creating
  * a sql statement for CREATE TABLE
  */
-@RequiredArgsConstructor
 @AllArgsConstructor
 class TableEntry {
     @NonNull
@@ -37,8 +36,7 @@ enum TableEntryType {
     INT,
     STRING,
     DOUBLE,
-    BOOL,
-    NULL
+    BOOL
 }
 
 /***
@@ -54,8 +52,8 @@ interface TableEntryTranslation {
 
         Arrays.stream(entries)
                 .map(entry -> entry.entryName + " " +
-                                TableEntryTypeTranslation.sqlite(entry.entryType) + " " +
-                                TableEntryNullableTranslation.sqlite(entry.isNullable) + " " +
+                                TableEntryTypeTranslation.sqlite(entry.entryType) +
+                                TableEntryNullableTranslation.sqlite(entry.isNullable) +
                                 TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
@@ -85,8 +83,6 @@ interface TableEntryTypeTranslation {
                 return "TEXT";
             case DOUBLE:
                 return "REAL";
-            case NULL:
-                return "NULL";
             default:
                 throw new IllegalArgumentException("Invalid Table Entry type");
         }
@@ -99,7 +95,7 @@ interface TableEntryTypeTranslation {
  */
 interface TableEntryNullableTranslation {
     static String sqlite(boolean isNullable) {
-        return isNullable ? "NULL" : "NOT NULL";
+        return isNullable ? "" : " NOT NULL";
     }
 }
 
@@ -109,7 +105,7 @@ interface TableEntryNullableTranslation {
  */
 interface TableEntryPrimaryKeyTranslation {
     static String sqlite(boolean isPrimaryKey) {
-        return isPrimaryKey ? "PRIMARY KEY" : "";
+        return isPrimaryKey ? " PRIMARY KEY" : "";
     }
 }
 
@@ -119,6 +115,6 @@ interface TableEntryPrimaryKeyTranslation {
  */
 interface TableEntryForeignKeyTranslation {
     static String sqlite(String entryName, String foreignTableName, String foreignRef) {
-        return "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + "(" + foreignRef + ")";
+        return "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
     }
 }

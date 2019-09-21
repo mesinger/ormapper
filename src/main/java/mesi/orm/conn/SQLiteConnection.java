@@ -2,6 +2,7 @@ package mesi.orm.conn;
 
 import mesi.orm.exception.ORMesiSqlException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -10,6 +11,16 @@ import java.sql.SQLException;
 public class SQLiteConnection extends DatabaseConnection {
     SQLiteConnection(String connectionstring) {
         super(JDBCDRIVERNAME.SQLITE, connectionstring);
+    }
+
+    /***
+     * this constructor should only be used for unit testing
+     * @param connectionstring
+     * @param testConnection
+     */
+    SQLiteConnection(String connectionstring, Connection testConnection) {
+        super(JDBCDRIVERNAME.SQLITE, connectionstring);
+        this.rawConnection = testConnection;
     }
 
     @Override
@@ -31,7 +42,7 @@ public class SQLiteConnection extends DatabaseConnection {
 
     private String createTableQuery(String tableName, TableEntry... entries) {
         StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE " + tableName + "(\n");
+        sql.append("CREATE TABLE " + tableName + " (\n");
 
         sql.append(TableEntryTranslation.sqlite(entries));
 

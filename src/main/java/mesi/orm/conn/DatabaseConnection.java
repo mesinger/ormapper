@@ -11,7 +11,7 @@ import java.sql.SQLException;
  */
 public abstract class DatabaseConnection implements DatabaseConnector, DatabaseModifier {
 
-    private final String DRIVER_CLASS_NAME;
+    protected final String DRIVER_CLASS_NAME;
     protected final String JDBC_URL;
     protected Connection rawConnection;
 
