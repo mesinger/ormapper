@@ -16,7 +16,7 @@ public abstract class PersistenceManager implements PersistenceOperations {
     @Getter(AccessLevel.PROTECTED)
     private DatabaseConnection databaseConnection;
 
-    protected PersistenceManager() {
+    public PersistenceManager() {
         validateAnnotations();
         databaseConnection.open();
     }
@@ -59,6 +59,6 @@ public abstract class PersistenceManager implements PersistenceOperations {
             throw new ORMesiPersistenceException("Persistent objects need exactly one member annotated with " + Id.class.getName());
         }
 
-        throw new RuntimeException("not finished");
+
     }
 }

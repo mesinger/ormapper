@@ -52,6 +52,16 @@ public class PersistenceManagerTest {
     }
 
     @Test
+    public void testPersist() {
+
+        assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new NotPersistentObject()));
+        assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new PersistentObject()));
+
+
+        throw new RuntimeException("todo");
+    }
+
+    @Test
     public void testMocks() {
         assertNotNull(databaseConnectionFactory);
         assertNotNull(validpm);

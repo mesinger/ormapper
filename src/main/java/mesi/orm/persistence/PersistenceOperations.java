@@ -1,5 +1,7 @@
 package mesi.orm.persistence;
 
+import java.lang.reflect.Field;
+
 /***
  * interface for PersistenceManager
  * hold methods which are used for storing and accessing
@@ -27,6 +29,12 @@ interface PersistenceOperations {
      * @return true, if object has exactly one member tagged as @Id, false otherwise
      */
     static boolean hasPersistentObjectIdentification(Object o) {
-        throw new RuntimeException("not implemented");
+
+        for(Field field : o.getClass().getDeclaredFields()) {
+            if(field.getDeclaredAnnotation(Id.class) != null)
+                return true;
+        }
+
+        return false;
     }
 }
