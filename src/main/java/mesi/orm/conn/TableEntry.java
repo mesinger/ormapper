@@ -11,7 +11,7 @@ import java.util.Arrays;
  * a sql statement for CREATE TABLE
  */
 @AllArgsConstructor
-class TableEntry {
+public class TableEntry {
     @NonNull
     public final String entryName;
     @NonNull

@@ -9,4 +9,9 @@ class MSSQLConnection extends DatabaseConnection{
     public void createTable(String tableName, TableEntry... entries) {
         throw new RuntimeException("todo");
     }
+
+    @Override
+    public boolean tableExists(String tableName) {
+        throw new RuntimeException("todo");
+    }
 }

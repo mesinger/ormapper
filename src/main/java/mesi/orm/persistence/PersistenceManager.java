@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import mesi.orm.conn.DatabaseConnection;
 import mesi.orm.conn.DatabaseConnectionFactory;
+import mesi.orm.conn.RDBMS;
+import mesi.orm.conn.TableEntry;
 import mesi.orm.exception.ORMesiPersistenceException;
 
 /***
@@ -13,11 +15,19 @@ import mesi.orm.exception.ORMesiPersistenceException;
 public abstract class PersistenceManager implements PersistenceOperations {
 
     private DatabaseConnectionFactory databaseConnectionFactory = new DatabaseConnectionFactory();
+    private RDBMS databaseSystem;
     @Getter(AccessLevel.PROTECTED)
     private DatabaseConnection databaseConnection;
 
-    public PersistenceManager() {
+    public PersistenceManager(String connectionString) {
         validateAnnotations();
+
+        databaseConnection = databaseConnectionFactory
+                .create(
+                        databaseSystem,
+                        connectionString
+                );
+
         databaseConnection.open();
     }
 
@@ -33,7 +43,7 @@ public abstract class PersistenceManager implements PersistenceOperations {
         validateDatabaseAnnotation();
     }
 
-    protected void validateDatabaseAnnotation() {
+    void validateDatabaseAnnotation() {
 
         var annotation = this.getClass().getAnnotation(Database.class);
 
@@ -41,11 +51,7 @@ public abstract class PersistenceManager implements PersistenceOperations {
             throw new ORMesiPersistenceException("Missing annotation " + Database.class.getName() + " for " + this.getClass().getName());
         }
 
-        databaseConnection = databaseConnectionFactory
-                .create(
-                        annotation.system(),
-                        annotation.connectionString()
-                );
+        databaseSystem = annotation.system();
     }
 
     @Override
@@ -59,6 +65,22 @@ public abstract class PersistenceManager implements PersistenceOperations {
             throw new ORMesiPersistenceException("Persistent objects need exactly one member annotated with " + Id.class.getName());
         }
 
+        final String tableName = getPersistenceObjectsTableName(o);
 
+        if(!databaseConnection.tableExists(tableName)) {
+
+            final var tableEntries = getPersistenceObjectsTableEntries(o);
+            databaseConnection.createTable(tableName, tableEntries);
+        }
+
+        throw new RuntimeException("not finished yet");
+    }
+
+    private TableEntry[] getPersistenceObjectsTableEntries(Object o) {
+        throw new RuntimeException("not implemented");
+    }
+
+    private String getPersistenceObjectsTableName(Object o) {
+        return o.getClass().getName() + "_table";
     }
 }

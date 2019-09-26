@@ -11,4 +11,11 @@ interface DatabaseModifier {
      * @param entries list of columns
      */
     void createTable(String tableName, TableEntry ... entries);
+
+    /***
+     * checks if a given table is already present in the database system
+     * @param tableName name of table
+     * @return true, if table exists, false otherwise
+     */
+    boolean tableExists(String tableName);
 }

@@ -40,6 +40,11 @@ public class SQLiteConnection extends DatabaseConnection {
         }
     }
 
+    @Override
+    public boolean tableExists(String tableName) {
+        throw new RuntimeException("todo");
+    }
+
     private String createTableQuery(String tableName, TableEntry... entries) {
         StringBuilder sql = new StringBuilder();
         sql.append("CREATE TABLE " + tableName + " (\n");

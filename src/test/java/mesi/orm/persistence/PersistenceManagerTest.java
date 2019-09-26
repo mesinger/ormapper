@@ -52,11 +52,13 @@ public class PersistenceManagerTest {
     }
 
     @Test
+    public void test
+
+    @Test
     public void testPersist() {
 
         assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new NotPersistentObject()));
         assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new PersistentObject()));
-
 
         throw new RuntimeException("todo");
     }
@@ -70,8 +72,7 @@ public class PersistenceManagerTest {
 }
 
 @Database(
-        system = RDBMS.SQLITE,
-        connectionString = "a"
+        system = RDBMS.SQLITE
 )
 class ValidPersistenceManager extends PersistenceManager {
     public ValidPersistenceManager(DatabaseConnectionFactory factroy) {
@@ -90,7 +91,7 @@ class MissingDatabaseAnnotationPersistenceManager extends PersistenceManager {
     }
 
     @Override
-    protected void validateDatabaseAnnotation() {
+    void validateDatabaseAnnotation() {
         super.validateDatabaseAnnotation();
     }
 }
