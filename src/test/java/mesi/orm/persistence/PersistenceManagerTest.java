@@ -1,97 +1,54 @@
 package mesi.orm.persistence;
 
-import mesi.orm.conn.DatabaseConnectionFactory;
-import mesi.orm.conn.RDBMS;
-import mesi.orm.exception.ORMesiPersistenceException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-@ExtendWith(MockitoExtension.class)
 public class PersistenceManagerTest {
 
-    @Mock
-    private DatabaseConnectionFactory databaseConnectionFactory;
+    private NotPersistentObject notPersistentObject;
+    private PersistentObject persistentObject;
+    private PersistentObjectWithId persistentObjectWithId;
 
-    @InjectMocks
-    private ValidPersistenceManager validpm;
-
-    @InjectMocks
-    private MissingDatabaseAnnotationPersistenceManager missingdbannopm;
-
-    @Test
-    public void testValidateDatabaseAnnotation() throws Exception {
-        Method pValidateDatabaseAnnotation = validpm.getClass().getDeclaredMethod("validateDatabaseAnnotation");
-
-        // this should not throw
-        pValidateDatabaseAnnotation.invoke(validpm);
+    @BeforeEach
+    private void setup() {
+        notPersistentObject = new NotPersistentObject();
+        persistentObject = new PersistentObject();
+        persistentObjectWithId = new PersistentObjectWithId();
     }
-
-    @Test
-    public void testMissingDatabaseAnnotation() throws Exception {
-        Method pValidateDatabaseAnnotation = missingdbannopm.getClass().getDeclaredMethod("validateDatabaseAnnotation");
-
-        assertThrows(
-                ORMesiPersistenceException.class,
-                () -> {
-                    try {
-                        pValidateDatabaseAnnotation.invoke(missingdbannopm);
-                    } catch (InvocationTargetException ex) {
-                        throw ex.getCause();
-                    }
-                }
-        );
-    }
-
-    @Test
-    public void test
 
     @Test
     public void testPersist() {
-
-        assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new NotPersistentObject()));
-        assertThrows(ORMesiPersistenceException.class, () ->validpm.persist(new PersistentObject()));
-
         throw new RuntimeException("todo");
     }
 
     @Test
-    public void testMocks() {
-        assertNotNull(databaseConnectionFactory);
-        assertNotNull(validpm);
-        assertNotNull(missingdbannopm);
+    public void testisObjectPersistent() {
+        assertTrue(PersistenceManager.isObjectPersistent(persistentObject));
+        assertTrue(PersistenceManager.isObjectPersistent(persistentObjectWithId));
+        assertFalse(PersistenceManager.isObjectPersistent(notPersistentObject));
+    }
+
+    @Test
+    public void hasPersistentObjectIdentification() {
+        assertFalse(PersistenceManager.hasPersistentObjectIdentification(persistentObject));
+        assertTrue(PersistenceManager.hasPersistentObjectIdentification(persistentObjectWithId));
     }
 }
 
-@Database(
-        system = RDBMS.SQLITE
-)
-class ValidPersistenceManager extends PersistenceManager {
-    public ValidPersistenceManager(DatabaseConnectionFactory factroy) {
-        super(factroy);
-    }
+class NotPersistentObject {
 
-    @Override
-    protected void validateDatabaseAnnotation() {
-        super.validateDatabaseAnnotation();
-    }
 }
 
-class MissingDatabaseAnnotationPersistenceManager extends PersistenceManager {
-    public MissingDatabaseAnnotationPersistenceManager(DatabaseConnectionFactory factroy) {
-        super(factroy);
-    }
+@Persistent
+class PersistentObject {
+    private long id;
+}
 
-    @Override
-    void validateDatabaseAnnotation() {
-        super.validateDatabaseAnnotation();
-    }
+@Persistent
+class PersistentObjectWithId {
+    @Id
+    private long id;
 }

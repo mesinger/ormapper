@@ -1,86 +1,40 @@
 package mesi.orm.persistence;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import mesi.orm.conn.DatabaseConnection;
-import mesi.orm.conn.DatabaseConnectionFactory;
-import mesi.orm.conn.RDBMS;
-import mesi.orm.conn.TableEntry;
-import mesi.orm.exception.ORMesiPersistenceException;
+import java.lang.reflect.Field;
 
 /***
- * Every persistance manager has to inherit from this base class.
- * Database annotation is required
+ * interface for PersistenceManagers
+ * hold methods which are used for storing and accessing
+ * between objects and databases
  */
-public abstract class PersistenceManager implements PersistenceOperations {
+public interface PersistenceManager {
+    /***
+     * persists an Persistent entity in the underlying rdbms
+     * @param o object to be mapped (has to be annotated with @Persistent)
+     */
+    void persist(Object o);
 
-    private DatabaseConnectionFactory databaseConnectionFactory = new DatabaseConnectionFactory();
-    private RDBMS databaseSystem;
-    @Getter(AccessLevel.PROTECTED)
-    private DatabaseConnection databaseConnection;
-
-    public PersistenceManager(String connectionString) {
-        validateAnnotations();
-
-        databaseConnection = databaseConnectionFactory
-                .create(
-                        databaseSystem,
-                        connectionString
-                );
-
-        databaseConnection.open();
+    /***
+     * checks if an object is annotated as Persistent
+     * @param o object
+     * @return true, if object is annotated with @Persistent, false otherwise
+     */
+    static boolean isObjectPersistent(Object o) {
+        return o.getClass().getAnnotation(Persistent.class) != null;
     }
 
     /***
-     * this constructor is used for unit testing only
-     * @param databaseConnectionFactory mocked factroy
+     * checks if persistent object has exactly one member tagged as id
+     * @param o persistent object
+     * @return true, if object has exactly one member tagged as @Id, false otherwise
      */
-    PersistenceManager(DatabaseConnectionFactory databaseConnectionFactory) {
-        this.databaseConnectionFactory = databaseConnectionFactory;
-    }
+    static boolean hasPersistentObjectIdentification(Object o) {
 
-    private void validateAnnotations() {
-        validateDatabaseAnnotation();
-    }
-
-    void validateDatabaseAnnotation() {
-
-        var annotation = this.getClass().getAnnotation(Database.class);
-
-        if(annotation == null) {
-            throw new ORMesiPersistenceException("Missing annotation " + Database.class.getName() + " for " + this.getClass().getName());
+        for(Field field : o.getClass().getDeclaredFields()) {
+            if(field.getDeclaredAnnotation(Id.class) != null)
+                return true;
         }
 
-        databaseSystem = annotation.system();
-    }
-
-    @Override
-    public void persist(Object o) {
-
-        if(!PersistenceOperations.isObjectPersistent(o)) {
-            throw new ORMesiPersistenceException("Object of type " + o.getClass().getName() + " misses the " + Persistent.class.getName() + " annotation");
-        }
-
-        if(!PersistenceOperations.hasPersistentObjectIdentification(o)) {
-            throw new ORMesiPersistenceException("Persistent objects need exactly one member annotated with " + Id.class.getName());
-        }
-
-        final String tableName = getPersistenceObjectsTableName(o);
-
-        if(!databaseConnection.tableExists(tableName)) {
-
-            final var tableEntries = getPersistenceObjectsTableEntries(o);
-            databaseConnection.createTable(tableName, tableEntries);
-        }
-
-        throw new RuntimeException("not finished yet");
-    }
-
-    private TableEntry[] getPersistenceObjectsTableEntries(Object o) {
-        throw new RuntimeException("not implemented");
-    }
-
-    private String getPersistenceObjectsTableName(Object o) {
-        return o.getClass().getName() + "_table";
+        return false;
     }
 }

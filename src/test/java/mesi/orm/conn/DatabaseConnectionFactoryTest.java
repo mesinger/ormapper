@@ -9,22 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DatabaseConnectionFactoryTest {
 
-    private DatabaseConnectionFactory factory;
-
-    @BeforeEach
-    public void setup() {
-        factory = new DatabaseConnectionFactory();
-    }
-
     @Test
     public void testSQLiteConnection() {
-        var connection = factory.create(RDBMS.SQLITE, "a");
+        var connection = DatabaseConnectionFactory.create(RDBMS.SQLITE, "a");
         assertNotNull(connection);
     }
 
     @Test
     public void testMSSQLConnection() {
-        var connection = factory.create(RDBMS.MSSQL, "a");
+        var connection = DatabaseConnectionFactory.create(RDBMS.MSSQL, "a");
         assertNotNull(connection);
     }
 
@@ -32,7 +25,7 @@ public class DatabaseConnectionFactoryTest {
     public void testInvalidType() {
         assertThrows(
                 ORMesiConnectionException.class,
-                () -> factory.create(null, "a"),
+                () -> DatabaseConnectionFactory.create(null, "a"),
                 "DatabaseConnectionFactory should throw if RDBMS is null"
                 );
     }
@@ -41,13 +34,13 @@ public class DatabaseConnectionFactoryTest {
     public void testInvalidConnectionString() {
         assertThrows(
                 ORMesiConnectionException.class,
-                () -> factory.create(RDBMS.SQLITE, ""),
+                () -> DatabaseConnectionFactory.create(RDBMS.SQLITE, ""),
                 "DatabaseConnectionFactory should throw on an empty connection string"
         );
 
         assertThrows(
                 ORMesiConnectionException.class,
-                () -> factory.create(RDBMS.SQLITE, null),
+                () -> DatabaseConnectionFactory.create(RDBMS.SQLITE, null),
                 "DatabaseConnectionFactory should throw on a null connection string"
         );
     }

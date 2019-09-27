@@ -5,7 +5,7 @@ import mesi.orm.exception.ORMesiConnectionException;
 /**
  * Factory for creating database connection objects for different database systems
  */
-public class DatabaseConnectionFactory {
+public interface DatabaseConnectionFactory {
 
     /**
      * Creates the desired DatabaseConnection and passes a connection string
@@ -14,7 +14,7 @@ public class DatabaseConnectionFactory {
      * @param connectionString connection string used for connecting to the database
      * @return
      */
-    public DatabaseConnection create(RDBMS rdbmsType, String connectionString) {
+    static DatabaseConnection create(RDBMS rdbmsType, String connectionString) {
 
         if(rdbmsType == null) {
             throw new ORMesiConnectionException("Unsupported RDBMS");
