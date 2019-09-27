@@ -42,7 +42,23 @@ public class SQLiteConnection extends DatabaseConnection {
 
     @Override
     public boolean tableExists(String tableName) {
-        throw new RuntimeException("todo");
+
+        final String query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
+
+        try {
+
+            var preparedStatement = rawConnection.prepareStatement(query);
+            preparedStatement.setString(1, tableName);
+
+            boolean tableExists = preparedStatement.execute();
+
+            preparedStatement.close();
+
+            return tableExists;
+
+        } catch (SQLException e) {
+            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+        }
     }
 
     private String createTableQuery(String tableName, TableEntry... entries) {

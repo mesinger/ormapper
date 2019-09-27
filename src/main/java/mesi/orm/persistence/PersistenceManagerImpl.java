@@ -14,7 +14,7 @@ import mesi.orm.exception.ORMesiPersistenceException;
  */
 @NoArgsConstructor
 final class PersistenceManagerImpl implements PersistenceManager {
-    
+
     private DatabaseConnection databaseConnection;
 
     @Inject
