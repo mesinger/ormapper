@@ -10,7 +10,7 @@ interface DatabaseModifier {
      * @param tableName name of the created table
      * @param entries list of columns
      */
-    void createTable(String tableName, TableEntry ... entries);
+    void createTable(String tableName, TableDescriptor... entries);
 
     /***
      * checks if a given table is already present in the database system

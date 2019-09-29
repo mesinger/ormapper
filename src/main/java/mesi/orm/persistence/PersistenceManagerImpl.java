@@ -1,12 +1,13 @@
 package mesi.orm.persistence;
 
 import com.google.inject.Inject;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import mesi.orm.conn.DatabaseConnection;
-import mesi.orm.conn.TableEntry;
 import mesi.orm.exception.ORMesiPersistenceException;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Optional;
 
 /***
  * Persistence manager implementation
@@ -32,25 +33,63 @@ final class PersistenceManagerImpl implements PersistenceManager {
         }
 
         if(!PersistenceManager.hasPersistentObjectIdentification(o)) {
-            throw new ORMesiPersistenceException("Persistent objects need exactly one member annotated with " + Id.class.getName());
+            throw new ORMesiPersistenceException("Persistent objects need exactly one member of type Long (or long) annotated with " + Id.class.getName());
         }
 
-        final String tableName = getPersistenceObjectsTableName(o);
+        try {
 
-        if(!databaseConnection.tableExists(tableName)) {
+            final String tableName = getPersistenceObjectsTableName(o);
+            final var persistentStructure = getPersistentStructureOf(o, o.getClass());
 
-            final var tableEntries = getPersistenceObjectsTableEntries(o);
-            databaseConnection.createTable(tableName, tableEntries);
+            if(!databaseConnection.tableExists(tableName)) {
+
+            }
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
+
 
         throw new RuntimeException("not finished yet");
     }
 
-    private TableEntry[] getPersistenceObjectsTableEntries(Object o) {
-        throw new RuntimeException("not implemented");
+    private PersistentStructure getPersistentStructureOf(Object o, Class cls) throws IllegalAccessException {
+
+        Optional<PersistentStructure> parentStructure = Optional.empty();
+
+        final var superClass = cls.getSuperclass();
+
+        if(PersistenceManager.isObjectPersistent(superClass)) {
+            parentStructure = Optional.of(getPersistentStructureOf(o, superClass));
+        }
+
+        final var tableName = getPersistenceObjectsTableName(cls);
+
+        var entries = new HashMap<String, Object>();
+
+        for(Field field : cls.getDeclaredFields()) {
+            field.setAccessible(true);
+
+            var value = field.get(o);
+            entries.put(field.getName(), value);
+        }
+
+        return new PersistentStructure(tableName, entries, parentStructure);
     }
 
+    /**
+     * @param o
+     * @return {o.classname}_table
+     */
     private String getPersistenceObjectsTableName(Object o) {
-        return o.getClass().getName() + "_table";
+        return getPersistenceObjectsTableName(o.getClass());
+    }
+
+    /**
+     * @param cls
+     * @return {classname}_table
+     */
+    private String getPersistenceObjectsTableName(Class cls) {
+        return cls.getName() + "_table";
     }
 }

@@ -7,11 +7,11 @@ import java.util.Arrays;
 
 /***
  * data class which describes an
- * table entry used while creating
+ * table used while creating
  * a sql statement for CREATE TABLE
  */
 @AllArgsConstructor
-public class TableEntry {
+public class TableDescriptor {
     @NonNull
     public final String entryName;
     @NonNull
@@ -39,26 +39,26 @@ enum TableEntryType {
 }
 
 /***
- * translates entry(entries) to a
- * partly sql query, which can be executed
- * while CREATE TABLE
+ * translates table descriptors to form
+ * parts of a sql query used for
+ * CREATE TABLE
  */
-interface TableEntryTranslation {
+interface TableDescriptorTranslator {
 
-    static String sqlite(TableEntry... entries) {
+    static String sqlite(TableDescriptor... entries) {
 
         StringBuilder sql = new StringBuilder();
 
         Arrays.stream(entries)
                 .map(entry -> entry.entryName + " " +
                                 TableEntryTypeTranslation.sqlite(entry.entryType) +
-                                TableEntryNullableTranslation.sqlite(entry.isNullable) +
-                                TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
+                                TableDescriptorNullableTranslation.sqlite(entry.isNullable) +
+                                TableDescriptorPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         Arrays.stream(entries)
                 .filter(entry -> entry.isForeignKey)
-                .map(foreignKeyEntry -> TableEntryForeignKeyTranslation.sqlite(foreignKeyEntry.entryName, foreignKeyEntry.foreignTableName, foreignKeyEntry.foreignRef) + ", \n")
+                .map(foreignKeyEntry -> TableDescriptorForeignKeyTranslation.sqlite(foreignKeyEntry.entryName, foreignKeyEntry.foreignTableName, foreignKeyEntry.foreignRef) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         //remove last three chars ", \n"
@@ -74,6 +74,11 @@ interface TableEntryTranslation {
  */
 interface TableEntryTypeTranslation {
     static String sqlite(TableEntryType type) throws IllegalArgumentException{
+
+        if(type == null) {
+            throw new IllegalArgumentException("type is null");
+        }
+
         switch (type) {
             case INT:
             case BOOL:
@@ -92,7 +97,7 @@ interface TableEntryTypeTranslation {
  * static functions which translate
  * nullability to a desired sql syntax
  */
-interface TableEntryNullableTranslation {
+interface TableDescriptorNullableTranslation {
     static String sqlite(boolean isNullable) {
         return isNullable ? "" : " NOT NULL";
     }
@@ -102,7 +107,7 @@ interface TableEntryNullableTranslation {
  * static functions which translate
  * primary key entries to a desired sql syntax
  */
-interface TableEntryPrimaryKeyTranslation {
+interface TableDescriptorPrimaryKeyTranslation {
     static String sqlite(boolean isPrimaryKey) {
         return isPrimaryKey ? " PRIMARY KEY" : "";
     }
@@ -112,7 +117,7 @@ interface TableEntryPrimaryKeyTranslation {
  * static functions which translate
  * foreign key entries to a desired sql syntax
  */
-interface TableEntryForeignKeyTranslation {
+interface TableDescriptorForeignKeyTranslation {
     static String sqlite(String entryName, String foreignTableName, String foreignRef) {
         return "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
     }

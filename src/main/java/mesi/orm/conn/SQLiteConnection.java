@@ -24,7 +24,7 @@ public class SQLiteConnection extends DatabaseConnection {
     }
 
     @Override
-    public void createTable(String tableName, TableEntry... entries) {
+    public void createTable(String tableName, TableDescriptor... entries) {
 
         final String sql = createTableQuery(tableName, entries);
 
@@ -61,11 +61,11 @@ public class SQLiteConnection extends DatabaseConnection {
         }
     }
 
-    private String createTableQuery(String tableName, TableEntry... entries) {
+    private String createTableQuery(String tableName, TableDescriptor... entries) {
         StringBuilder sql = new StringBuilder();
         sql.append("CREATE TABLE " + tableName + " (\n");
 
-        sql.append(TableEntryTranslation.sqlite(entries));
+        sql.append(TableDescriptorTranslator.sqlite(entries));
 
         sql.append("\n);");
 

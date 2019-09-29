@@ -22,6 +22,9 @@ public interface PersistenceManager {
     static boolean isObjectPersistent(Object o) {
         return o.getClass().getAnnotation(Persistent.class) != null;
     }
+    static boolean isObjectPersistent(Class clazz) {
+        return clazz.getAnnotation(Persistent.class) != null;
+    }
 
     /***
      * checks if persistent object has exactly one member tagged as id
@@ -31,8 +34,9 @@ public interface PersistenceManager {
     static boolean hasPersistentObjectIdentification(Object o) {
 
         for(Field field : o.getClass().getDeclaredFields()) {
-            if(field.getDeclaredAnnotation(Id.class) != null)
-                return true;
+            if(field.getDeclaredAnnotation(Id.class) != null) {
+                return field.getType().equals(Long.class) || field.getType().equals(long.class);
+            }
         }
 
         return false;

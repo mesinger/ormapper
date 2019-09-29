@@ -11,12 +11,14 @@ public class PersistenceManagerTest {
     private NotPersistentObject notPersistentObject;
     private PersistentObject persistentObject;
     private PersistentObjectWithId persistentObjectWithId;
+    private PersistentObjectWithId2 persistentObjectWithId2;
 
     @BeforeEach
     private void setup() {
         notPersistentObject = new NotPersistentObject();
         persistentObject = new PersistentObject();
         persistentObjectWithId = new PersistentObjectWithId();
+        persistentObjectWithId2 = new PersistentObjectWithId2();
     }
 
     @Test
@@ -28,6 +30,7 @@ public class PersistenceManagerTest {
     public void testisObjectPersistent() {
         assertTrue(PersistenceManager.isObjectPersistent(persistentObject));
         assertTrue(PersistenceManager.isObjectPersistent(persistentObjectWithId));
+        assertTrue(PersistenceManager.isObjectPersistent(persistentObjectWithId2));
         assertFalse(PersistenceManager.isObjectPersistent(notPersistentObject));
     }
 
@@ -35,6 +38,7 @@ public class PersistenceManagerTest {
     public void hasPersistentObjectIdentification() {
         assertFalse(PersistenceManager.hasPersistentObjectIdentification(persistentObject));
         assertTrue(PersistenceManager.hasPersistentObjectIdentification(persistentObjectWithId));
+        assertTrue(PersistenceManager.hasPersistentObjectIdentification(persistentObjectWithId2));
     }
 }
 
@@ -49,6 +53,12 @@ class PersistentObject {
 
 @Persistent
 class PersistentObjectWithId {
+    @Id
+    private Long id;
+}
+
+@Persistent
+class PersistentObjectWithId2 {
     @Id
     private long id;
 }
