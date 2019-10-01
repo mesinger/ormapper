@@ -3,9 +3,11 @@ package mesi.orm.persistence;
 import com.google.inject.Inject;
 import lombok.NoArgsConstructor;
 import mesi.orm.conn.DatabaseConnection;
+import mesi.orm.conn.TableEntry;
 import mesi.orm.exception.ORMesiPersistenceException;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -42,15 +44,39 @@ final class PersistenceManagerImpl implements PersistenceManager {
             final var persistentStructure = getPersistentStructureOf(o, o.getClass());
 
             if(!databaseConnection.tableExists(tableName)) {
-
+                databaseConnection.createTable(tableName, getTableEntriesOfPersistentStructure(persistentStructure));
             }
 
+            databaseConnection.insert(tableName, persistentStructure.getAllFields().toArray(PersistentField[]::new));
+
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new ORMesiPersistenceException("Class " + o.getClass().getName() + " cannot be persisted.\n" + e.getMessage());
         }
 
 
         throw new RuntimeException("not finished yet");
+    }
+
+    private TableEntry[] getTableEntriesOfPersistentStructure(PersistentStructure ps) {
+
+        var entries = new ArrayList<TableEntry>();
+
+        for(PersistentField field : ps.getAllFields()) {
+
+            entries.add(
+                    new TableEntry(
+                            field.getName(),
+                            TableEntry.getTypeOf(field.getValue()),
+                            field.isNullable(),
+                            field.isPrimary(),
+                            field.isForeign(),
+                            field.getForeignTableName(),
+                            field.getForeignRef()
+                    )
+            );
+        }
+
+        return entries.toArray(TableEntry[]::new);
     }
 
     private PersistentStructure getPersistentStructureOf(Object o, Class cls) throws IllegalAccessException {
@@ -65,7 +91,7 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
         final var tableName = getPersistenceObjectsTableName(cls);
 
-        var entries = new HashMap<String, PersistentField>();
+        var entries = new ArrayList<PersistentField>();
 
         for(Field field : cls.getDeclaredFields()) {
             field.setAccessible(true);
@@ -75,7 +101,7 @@ final class PersistenceManagerImpl implements PersistenceManager {
             boolean isPrimary = field.getAnnotation(Id.class) != null;
             boolean isForeign = field.getAnnotation(Foreign.class) != null;
 
-            entries.put(field.getName(), new PersistentField(value, isNullable, isPrimary, isForeign));
+            entries.add(new PersistentField(field.getName(), value, isNullable, isPrimary, isForeign));
         }
 
         return new PersistentStructure(tableName, entries, parentStructure);

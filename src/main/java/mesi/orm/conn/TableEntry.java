@@ -2,6 +2,8 @@ package mesi.orm.conn;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import mesi.orm.exception.ORMesiPersistenceException;
 
 import java.util.Arrays;
 
@@ -11,6 +13,7 @@ import java.util.Arrays;
  * a sql statement for CREATE TABLE
  */
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class TableEntry {
     @NonNull
     public final String entryName;
@@ -24,6 +27,30 @@ public class TableEntry {
     public final boolean isForeignKey;
     public final String foreignTableName;
     public final String foreignRef;
+
+    public static TableEntryType getTypeOf(Object o) {
+
+        var type = o.getClass();
+
+        if(Number.class.isAssignableFrom(type)) {
+
+            if(type.equals(double.class) || type.equals(Double.class) || type.equals(float.class) || type.equals(Float.class)) {
+                return TableEntryType.DOUBLE;
+            }
+            else {
+                return TableEntryType.INT;
+            }
+        }
+        else if(type.equals(String.class) || type.equals(char[].class)) {
+            return TableEntryType.STRING;
+        }
+        else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
+            return TableEntryType.BOOL;
+        }
+        else {
+            throw new ORMesiPersistenceException("Cannot persist members of type " + type.getName());
+        }
+    }
 }
 
 /***

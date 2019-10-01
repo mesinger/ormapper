@@ -3,6 +3,8 @@ package mesi.orm.persistence;
 import lombok.*;
 import mesi.orm.conn.TableEntry;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,22 +22,18 @@ class PersistentStructure {
     private String tableName;
 
     @NonNull
-    private Map<String, PersistentField> fields;
+    private List<PersistentField> fields;
 
     @Getter(AccessLevel.PACKAGE)
     private Optional<PersistentStructure> parentStructure = Optional.empty();
 
-//    TableEntry[] translate
-}
+    List<PersistentField> getAllFields() {
 
-@Data
-class PersistentField {
-    @NonNull
-    private Object value;
-    @NonNull
-    private boolean isNullable;
-    @NonNull
-    private boolean isPrimary;
-    @NonNull
-    private boolean isForeign;
+        var all = new ArrayList<PersistentField>();
+        all.addAll(fields);
+
+        parentStructure.ifPresent(parent -> all.addAll(parent.getAllFields()));
+
+        return all;
+    }
 }

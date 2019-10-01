@@ -1,5 +1,7 @@
 package mesi.orm.conn;
 
+import mesi.orm.persistence.PersistentField;
+
 /***
  * Performs CRUD operations on the underlying database system
  */
@@ -18,4 +20,13 @@ interface DatabaseModifier {
      * @return true, if table exists, false otherwise
      */
     boolean tableExists(String tableName);
+
+    /**
+     * inserts a new row
+     * of given fields in
+     * a table
+     * @param tableName name of table
+     * @param fields columns which are inserted
+     */
+    void insert(String tableName, PersistentField... fields);
 }
