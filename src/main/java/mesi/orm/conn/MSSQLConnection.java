@@ -6,7 +6,7 @@ class MSSQLConnection extends DatabaseConnection{
     }
 
     @Override
-    public void createTable(String tableName, TableDescriptor... entries) {
+    public void createTable(String tableName, TableEntry... entries) {
         throw new RuntimeException("todo");
     }
 

@@ -26,7 +26,7 @@ public class SQLiteConnectionTest {
     @InjectMocks
     private SQLiteConnection connection;
 
-    private TableDescriptor[] dummyEntries = {new TableDescriptor("id", TableEntryType.INT, false, true, false, null, null)};
+    private TableEntry[] dummyEntries = {new TableEntry("id", TableEntryType.INT, false, true, false, null, null)};
 
     @Test
     public void testConstructor() {
@@ -50,7 +50,7 @@ public class SQLiteConnectionTest {
         Statement mockedStatement = mock(Statement.class);
         when(rawConnection.createStatement()).thenReturn(mockedStatement);
 
-        Method pCreateQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableDescriptor[].class);
+        Method pCreateQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);
         pCreateQuery.setAccessible(true);
         String sql = (String) pCreateQuery.invoke(connection, "table", dummyEntries);
 
@@ -73,17 +73,17 @@ public class SQLiteConnectionTest {
                 + "FOREIGN KEY (foreign_id) REFERENCES foreigntable (id)\n"
                 + ");";
 
-        Method pCreateTableQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableDescriptor[].class);
+        Method pCreateTableQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);
         pCreateTableQuery.setAccessible(true);
 
         String actual = (String) pCreateTableQuery.invoke(connection,
                 tableName,
-                new TableDescriptor[] {
-                        new TableDescriptor("id", TableEntryType.INT, false, true, false, null, null),
-                        new TableDescriptor("string", TableEntryType.STRING, false, false, false, null, null),
-                        new TableDescriptor("double", TableEntryType.DOUBLE, true, false, false, null, null),
-                        new TableDescriptor("bool", TableEntryType.BOOL, false, false, false, null, null),
-                        new TableDescriptor("foreign_id", TableEntryType.INT, false, false, true, "foreigntable", "id")
+                new TableEntry[] {
+                        new TableEntry("id", TableEntryType.INT, false, true, false, null, null),
+                        new TableEntry("string", TableEntryType.STRING, false, false, false, null, null),
+                        new TableEntry("double", TableEntryType.DOUBLE, true, false, false, null, null),
+                        new TableEntry("bool", TableEntryType.BOOL, false, false, false, null, null),
+                        new TableEntry("foreign_id", TableEntryType.INT, false, false, true, "foreigntable", "id")
                 }
                 );
 

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class TableDescriptorTest {
+public class TableEntryTest {
 
     @Test
     public void testEntryTypeTranslationSqlite() {
@@ -18,8 +18,8 @@ public class TableDescriptorTest {
 
     @Test
     public void testEntryPrimaryKeyTranslation() {
-        assertEquals(" PRIMARY KEY", TableDescriptorPrimaryKeyTranslation.sqlite(true));
-        assertEquals("", TableDescriptorPrimaryKeyTranslation.sqlite(false));
+        assertEquals(" PRIMARY KEY", TableEntryPrimaryKeyTranslation.sqlite(true));
+        assertEquals("", TableEntryPrimaryKeyTranslation.sqlite(false));
     }
 
     @Test
@@ -29,6 +29,6 @@ public class TableDescriptorTest {
         final String foreignRef = "id";
         final String expected = "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
 
-        assertEquals(expected, TableDescriptorForeignKeyTranslation.sqlite(entryName, foreignTableName, foreignRef));
+        assertEquals(expected, TableEntryForeignKeyTranslation.sqlite(entryName, foreignTableName, foreignRef));
     }
 }

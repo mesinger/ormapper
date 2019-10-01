@@ -65,13 +65,17 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
         final var tableName = getPersistenceObjectsTableName(cls);
 
-        var entries = new HashMap<String, Object>();
+        var entries = new HashMap<String, PersistentField>();
 
         for(Field field : cls.getDeclaredFields()) {
             field.setAccessible(true);
 
             var value = field.get(o);
-            entries.put(field.getName(), value);
+            boolean isNullable = field.getAnnotation(Nullable.class) != null;
+            boolean isPrimary = field.getAnnotation(Id.class) != null;
+            boolean isForeign = field.getAnnotation(Foreign.class) != null;
+
+            entries.put(field.getName(), new PersistentField(value, isNullable, isPrimary, isForeign));
         }
 
         return new PersistentStructure(tableName, entries, parentStructure);

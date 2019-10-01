@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /***
- * decorative annotation for a foreign key
+ * decorative annotation for a foreign
  * member in a persistent object
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ForeignKey {
+public @interface Foreign {
 }

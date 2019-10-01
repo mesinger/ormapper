@@ -11,7 +11,7 @@ import java.util.Arrays;
  * a sql statement for CREATE TABLE
  */
 @AllArgsConstructor
-public class TableDescriptor {
+public class TableEntry {
     @NonNull
     public final String entryName;
     @NonNull
@@ -43,22 +43,22 @@ enum TableEntryType {
  * parts of a sql query used for
  * CREATE TABLE
  */
-interface TableDescriptorTranslator {
+interface TableEntryTranslator {
 
-    static String sqlite(TableDescriptor... entries) {
+    static String sqlite(TableEntry... entries) {
 
         StringBuilder sql = new StringBuilder();
 
         Arrays.stream(entries)
                 .map(entry -> entry.entryName + " " +
                                 TableEntryTypeTranslation.sqlite(entry.entryType) +
-                                TableDescriptorNullableTranslation.sqlite(entry.isNullable) +
-                                TableDescriptorPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
+                                TableEntryNullableTranslation.sqlite(entry.isNullable) +
+                                TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         Arrays.stream(entries)
                 .filter(entry -> entry.isForeignKey)
-                .map(foreignKeyEntry -> TableDescriptorForeignKeyTranslation.sqlite(foreignKeyEntry.entryName, foreignKeyEntry.foreignTableName, foreignKeyEntry.foreignRef) + ", \n")
+                .map(foreignKeyEntry -> TableEntryForeignKeyTranslation.sqlite(foreignKeyEntry.entryName, foreignKeyEntry.foreignTableName, foreignKeyEntry.foreignRef) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         //remove last three chars ", \n"
@@ -97,7 +97,7 @@ interface TableEntryTypeTranslation {
  * static functions which translate
  * nullability to a desired sql syntax
  */
-interface TableDescriptorNullableTranslation {
+interface TableEntryNullableTranslation {
     static String sqlite(boolean isNullable) {
         return isNullable ? "" : " NOT NULL";
     }
@@ -107,7 +107,7 @@ interface TableDescriptorNullableTranslation {
  * static functions which translate
  * primary key entries to a desired sql syntax
  */
-interface TableDescriptorPrimaryKeyTranslation {
+interface TableEntryPrimaryKeyTranslation {
     static String sqlite(boolean isPrimaryKey) {
         return isPrimaryKey ? " PRIMARY KEY" : "";
     }
@@ -117,7 +117,7 @@ interface TableDescriptorPrimaryKeyTranslation {
  * static functions which translate
  * foreign key entries to a desired sql syntax
  */
-interface TableDescriptorForeignKeyTranslation {
+interface TableEntryForeignKeyTranslation {
     static String sqlite(String entryName, String foreignTableName, String foreignRef) {
         return "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
     }
