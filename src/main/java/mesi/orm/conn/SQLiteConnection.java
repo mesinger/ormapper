@@ -1,10 +1,8 @@
 package mesi.orm.conn;
 
-import mesi.orm.exception.ORMesiSqlException;
 import mesi.orm.persistence.PersistentField;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -27,51 +25,24 @@ public class SQLiteConnection extends DatabaseConnection {
     }
 
     @Override
-    public void createTable(String tableName, TableEntry... entries) {
+    protected String createTableQuery(String tableName, TableEntry... entries) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("CREATE TABLE " + tableName + " (\n");
 
-        final String sql = createTableQuery(tableName, entries);
+        sql.append(TableEntryTranslator.sqlite(entries));
 
-        try {
+        sql.append("\n);");
 
-            var stmt = rawConnection.createStatement();
-            stmt.execute(sql);
-
-            stmt.close();
-
-        } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
-        }
+        return sql.toString();
     }
 
     @Override
-    public boolean tableExists(String tableName) {
-
-        final String query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
-
-        try {
-
-            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            rawConnection.setAutoCommit(false);
-
-            var preparedStatement = rawConnection.prepareStatement(query);
-            preparedStatement.setString(1, tableName);
-
-            boolean tableExists = preparedStatement.execute();
-
-            rawConnection.commit();
-            rawConnection.setAutoCommit(true);
-
-            preparedStatement.close();
-
-            return tableExists;
-
-        } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
-        }
+    protected String tableExistsQuery() {
+        return "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
     }
 
     @Override
-    public void insert(String tableName, PersistentField... fields) {
+    protected String insertQuery(String tableName, PersistentField... fields) {
 
         StringBuilder query = new StringBuilder("INSERT INTO " + tableName + " (");
 
@@ -99,32 +70,6 @@ public class SQLiteConnection extends DatabaseConnection {
         query.setLength(query.length() - 2);
         query.append(");");
 
-        try {
-
-            rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            rawConnection.setAutoCommit(false);
-
-            var stmt = rawConnection.createStatement();
-            stmt.execute(query.toString());
-
-            rawConnection.commit();
-            rawConnection.setAutoCommit(true);
-
-            stmt.close();
-
-        } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
-        }
-    }
-
-    private String createTableQuery(String tableName, TableEntry... entries) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE " + tableName + " (\n");
-
-        sql.append(TableEntryTranslator.sqlite(entries));
-
-        sql.append("\n);");
-
-        return sql.toString();
+        return query.toString();
     }
 }

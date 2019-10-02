@@ -1,6 +1,8 @@
 package mesi.orm.conn;
 
 import mesi.orm.exception.ORMesiConnectionException;
+import mesi.orm.exception.ORMesiSqlException;
+import mesi.orm.persistence.PersistentField;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -58,4 +60,82 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             throw new ORMesiConnectionException("Error while closing connection to database.\n" + e.getMessage());
         }
     }
+
+    @Override
+    public void createTable(String tableName, TableEntry... entries) {
+
+        final String sql = createTableQuery(tableName, entries);
+
+        try {
+
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            rawConnection.setAutoCommit(false);
+
+            var stmt = rawConnection.createStatement();
+            stmt.execute(sql);
+
+            rawConnection.commit();
+            rawConnection.setAutoCommit(true);
+
+            stmt.close();
+
+        } catch (SQLException e) {
+            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean tableExists(String tableName) {
+
+        final String query = tableExistsQuery();
+
+        try {
+
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            rawConnection.setAutoCommit(false);
+
+            var preparedStatement = rawConnection.prepareStatement(query);
+            preparedStatement.setString(1, tableName);
+
+            boolean tableExists = preparedStatement.execute();
+
+            rawConnection.commit();
+            rawConnection.setAutoCommit(true);
+
+            preparedStatement.close();
+
+            return tableExists;
+
+        } catch (SQLException e) {
+            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void insert(String tableName, PersistentField... fields) {
+
+        final var query = insertQuery(tableName, fields);
+
+        try {
+
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            rawConnection.setAutoCommit(false);
+
+            var stmt = rawConnection.createStatement();
+            stmt.execute(query);
+
+            rawConnection.commit();
+            rawConnection.setAutoCommit(true);
+
+            stmt.close();
+
+        } catch (SQLException e) {
+            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+        }
+    }
+
+    // abstract query creation functions
+    protected abstract String createTableQuery(String tableName, TableEntry... entries);
+    protected abstract String tableExistsQuery();
+    protected abstract String insertQuery(String tableName, PersistentField... fields);
 }

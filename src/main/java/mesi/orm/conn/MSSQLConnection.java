@@ -7,18 +7,19 @@ class MSSQLConnection extends DatabaseConnection{
         super(JDBCDRIVERNAME.MSSQL, connectionstring);
     }
 
+
     @Override
-    public void createTable(String tableName, TableEntry... entries) {
+    protected String createTableQuery(String tableName, TableEntry... entries) {
         throw new RuntimeException("todo");
     }
 
     @Override
-    public boolean tableExists(String tableName) {
+    protected String tableExistsQuery() {
         throw new RuntimeException("todo");
     }
 
     @Override
-    public void insert(String tableName, PersistentField... fields) {
+    protected String insertQuery(String tableName, PersistentField... fields) {
         throw new RuntimeException("todo");
     }
 }

@@ -1,6 +1,6 @@
 package mesi.orm.conn;
 
-import mesi.orm.exception.ORMesiSqlException;
+import mesi.orm.persistence.PersistentField;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,13 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 public class SQLiteConnectionTest {
@@ -25,8 +21,6 @@ public class SQLiteConnectionTest {
 
     @InjectMocks
     private SQLiteConnection connection;
-
-    private TableEntry[] dummyEntries = {new TableEntry("id", TableEntryType.INT, false, true, false, null, null)};
 
     @Test
     public void testConstructor() {
@@ -39,39 +33,18 @@ public class SQLiteConnectionTest {
     }
 
     @Test
-    public void testCreateTable() throws Exception {
-        when(rawConnection.createStatement()).thenReturn(mock(Statement.class));
-        //this should not throw
-        connection.createTable("table", dummyEntries);
-    }
-
-    @Test
-    public void testCreateTableThrows() throws Exception {
-        Statement mockedStatement = mock(Statement.class);
-        when(rawConnection.createStatement()).thenReturn(mockedStatement);
-
-        Method pCreateQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);
-        pCreateQuery.setAccessible(true);
-        String sql = (String) pCreateQuery.invoke(connection, "table", dummyEntries);
-
-        when(mockedStatement.execute(sql)).thenThrow(ORMesiSqlException.class);
-
-        assertThrows(ORMesiSqlException.class, () -> connection.createTable("table", dummyEntries));
-    }
-
-    @Test
     public void testCreateTableQuery() throws Exception {
 
         final String tableName = "dummytable";
         final String expectation =
                 "CREATE TABLE " + tableName + " (\n"
-                + "id INTEGER NOT NULL PRIMARY KEY, \n"
-                + "string TEXT NOT NULL, \n"
-                + "double REAL, \n"
-                + "bool INTEGER NOT NULL, \n"
-                + "foreign_id INTEGER NOT NULL, \n"
-                + "FOREIGN KEY (foreign_id) REFERENCES foreigntable (id)\n"
-                + ");";
+                        + "id INTEGER NOT NULL PRIMARY KEY, \n"
+                        + "string TEXT NOT NULL, \n"
+                        + "double REAL, \n"
+                        + "bool INTEGER NOT NULL, \n"
+                        + "foreign_id INTEGER NOT NULL, \n"
+                        + "FOREIGN KEY (foreign_id) REFERENCES foreigntable (id)\n"
+                        + ");";
 
         Method pCreateTableQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);
         pCreateTableQuery.setAccessible(true);
@@ -85,32 +58,30 @@ public class SQLiteConnectionTest {
                         new TableEntry("bool", TableEntryType.BOOL, false, false, false, null, null),
                         new TableEntry("foreign_id", TableEntryType.INT, false, false, true, "foreigntable", "id")
                 }
-                );
+        );
 
         assertEquals(expectation, actual);
     }
 
     @Test
-    public void testTableExists() throws Exception {
-
-        PreparedStatement statement = mock(PreparedStatement.class);
-        when(statement.execute()).thenReturn(true);
-
-        when(rawConnection.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;")).thenReturn(statement);
-
-        assertTrue(connection.tableExists("table"));
-        assertTrue(connection.tableExists(null));
+    public void testTableExistsQuery() {
+        final String expected = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
+        final String actual = connection.tableExistsQuery();
+        assertEquals(expected, actual);
     }
 
     @Test
-    public void testTableExistsFails() throws Exception {
+    public void testInsertQuery() {
 
-        PreparedStatement statement = mock(PreparedStatement.class);
-        when(statement.execute()).thenThrow(SQLException.class);
+        final PersistentField[] dummyFields = {
+                new PersistentField("id", 1, false, false, false),
+                new PersistentField("name", "mesi", false, false, false)
+        };
 
-        when(rawConnection.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;")).thenReturn(statement);
+        final String expected = "INSERT INTO tablename (id, name) VALUES (1, 'mesi');";
+        final String actual = connection.insertQuery("tablename", dummyFields);
 
-        assertThrows(ORMesiSqlException.class, () -> connection.tableExists(""));
+        assertEquals(expected, actual);
     }
 
     @Test

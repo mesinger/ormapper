@@ -6,7 +6,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 
+ * data class for storing information
+ * about a member in a persistent object
+ * (mainly used while parsing annotations, name, object type, value) of persistent members)
  */
 @Data
 @AllArgsConstructor

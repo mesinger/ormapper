@@ -26,8 +26,8 @@ public class TableEntry {
     @NonNull
     private boolean foreign;
 
-    private String foreignTableName;
-    private String foreignRef;
+    private String foreignTableName = "";
+    private String foreignRef = "";
 
     /**
      * translates an objects type
