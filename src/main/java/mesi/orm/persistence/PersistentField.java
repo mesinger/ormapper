@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 
+ */
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor

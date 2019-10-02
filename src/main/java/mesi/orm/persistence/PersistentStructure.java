@@ -27,6 +27,9 @@ class PersistentStructure {
     @Getter(AccessLevel.PACKAGE)
     private Optional<PersistentStructure> parentStructure = Optional.empty();
 
+    /**
+     * @return all fields and parent fields recursively
+     */
     List<PersistentField> getAllFields() {
 
         var all = new ArrayList<PersistentField>();

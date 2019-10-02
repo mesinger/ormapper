@@ -5,14 +5,13 @@ import mesi.orm.persistence.PersistentField;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
  * Establishes a connection to a SQLite database
  */
-class SQLiteConnection extends DatabaseConnection {
+public class SQLiteConnection extends DatabaseConnection {
     SQLiteConnection(String connectionstring) {
         super(JDBCDRIVERNAME.SQLITE, connectionstring);
     }
@@ -75,8 +74,6 @@ class SQLiteConnection extends DatabaseConnection {
     public void insert(String tableName, PersistentField... fields) {
 
         StringBuilder query = new StringBuilder("INSERT INTO " + tableName + " (");
-
-        final int numberOfFields = fields.length;
 
         var columnNames = Arrays.stream(fields).map(field -> field.getName()).collect(Collectors.toList());
         var values = Arrays.stream(fields).map(field -> {

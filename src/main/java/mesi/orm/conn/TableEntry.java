@@ -1,8 +1,8 @@
 package mesi.orm.conn;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import mesi.orm.exception.ORMesiPersistenceException;
 
 import java.util.Arrays;
@@ -12,22 +12,29 @@ import java.util.Arrays;
  * table used while creating
  * a sql statement for CREATE TABLE
  */
+@Data
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class TableEntry {
     @NonNull
-    public final String entryName;
+    private String entryName;
     @NonNull
-    public final TableEntryType entryType;
+    private TableEntryType entryType;
     @NonNull
-    public final boolean isNullable;
+    private boolean nullable;
     @NonNull
-    public final boolean isPrimaryKey;
+    private boolean primary;
     @NonNull
-    public final boolean isForeignKey;
-    public final String foreignTableName;
-    public final String foreignRef;
+    private boolean foreign;
 
+    private String foreignTableName;
+    private String foreignRef;
+
+    /**
+     * translates an objects type
+     * to a supported database data type
+     * @param o
+     * @return corresponding database entry type, or throws on invalid objects
+     */
     public static TableEntryType getTypeOf(Object o) {
 
         var type = o.getClass();
@@ -41,7 +48,7 @@ public class TableEntry {
                 return TableEntryType.INT;
             }
         }
-        else if(type.equals(String.class) || type.equals(char[].class)) {
+        else if(type.equals(String.class)) {
             return TableEntryType.STRING;
         }
         else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
@@ -77,15 +84,15 @@ interface TableEntryTranslator {
         StringBuilder sql = new StringBuilder();
 
         Arrays.stream(entries)
-                .map(entry -> entry.entryName + " " +
-                                TableEntryTypeTranslation.sqlite(entry.entryType) +
-                                TableEntryNullableTranslation.sqlite(entry.isNullable) +
-                                TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimaryKey) + ", \n")
+                .map(entry -> entry.getEntryName() + " " +
+                                TableEntryTypeTranslation.sqlite(entry.getEntryType()) +
+                                TableEntryNullableTranslation.sqlite(entry.isNullable()) +
+                                TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimary()) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         Arrays.stream(entries)
-                .filter(entry -> entry.isForeignKey)
-                .map(foreignKeyEntry -> TableEntryForeignKeyTranslation.sqlite(foreignKeyEntry.entryName, foreignKeyEntry.foreignTableName, foreignKeyEntry.foreignRef) + ", \n")
+                .filter(entry -> entry.isForeign())
+                .map(foreignKeyEntry -> TableEntryForeignKeyTranslation.sqlite(foreignKeyEntry.getEntryName(), foreignKeyEntry.getForeignTableName(), foreignKeyEntry.getForeignRef()) + ", \n")
                 .forEach(queryPart -> sql.append(queryPart));
 
         //remove last three chars ", \n"

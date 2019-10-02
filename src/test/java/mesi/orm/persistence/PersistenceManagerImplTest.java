@@ -23,30 +23,32 @@ public class PersistenceManagerImplTest {
     @Test
     public void testGetPersistentStructureOf() throws Exception {
 
-        Method pGetPersistentStructureOf = pm.getClass().getDeclaredMethod("getPersistentStructureOf", Object.class, Class.class);
-        pGetPersistentStructureOf.setAccessible(true);
+//        Method pGetPersistentStructureOf = pm.getClass().getDeclaredMethod("getPersistentStructureOf", Object.class, Class.class);
+//        pGetPersistentStructureOf.setAccessible(true);
+//
+//        final PersistentStructure actual = (PersistentStructure) pGetPersistentStructureOf.invoke(pm, new Student("mesi", 23, "if17b021"), Student.class);
+//
+//        final var map1 = new HashMap<String, Object>();
+//        map1.put("id", null);
+//        map1.put("uid", "if17b021");
+//
+//        final var map2 = new HashMap<String, Object>();
+//        map2.put("id", null);
+//        map2.put("name", "mesi");
+//        map2.put("age", 23);
+//
+//        final var expected = new PersistentStructure(
+//                Student.class.getName() + "_table",
+//                map1,
+//                Optional.of(new PersistentStructure(
+//                        Person.class.getName() + "_table",
+//                        map2
+//                ))
+//        );
+//
+//        assertEquals(expected, actual);
 
-        final PersistentStructure actual = (PersistentStructure) pGetPersistentStructureOf.invoke(pm, new Student("mesi", 23, "if17b021"), Student.class);
-
-        final var map1 = new HashMap<String, Object>();
-        map1.put("id", null);
-        map1.put("uid", "if17b021");
-
-        final var map2 = new HashMap<String, Object>();
-        map2.put("id", null);
-        map2.put("name", "mesi");
-        map2.put("age", 23);
-
-        final var expected = new PersistentStructure(
-                Student.class.getName() + "_table",
-                map1,
-                Optional.of(new PersistentStructure(
-                        Person.class.getName() + "_table",
-                        map2
-                ))
-        );
-
-        assertEquals(expected, actual);
+        throw new RuntimeException("todo");
     }
 
     @Test
