@@ -52,9 +52,6 @@ final class PersistenceManagerImpl implements PersistenceManager {
         } catch (IllegalAccessException e) {
             throw new ORMesiPersistenceException("Class " + o.getClass().getName() + " cannot be persisted.\n" + e.getMessage());
         }
-
-
-        throw new RuntimeException("not finished yet");
     }
 
     private TableEntry[] getTableEntriesOfPersistentStructure(PersistentStructure ps) {
