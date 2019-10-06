@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 /**
  * data class for storing information
  * about a member in a persistent object
@@ -17,7 +19,7 @@ public class PersistentField {
     @NonNull
     private String name;
     @NonNull
-    private Object value;
+    private Optional<Object> value;
     @NonNull
     private boolean isNullable;
     @NonNull
@@ -27,4 +29,8 @@ public class PersistentField {
 
     private String foreignTableName = "";
     private String foreignRef = "";
+
+    public Object getValue() {
+        return value.orElse(new Object());
+    }
 }

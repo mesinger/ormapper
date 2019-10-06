@@ -22,10 +22,10 @@ public class PersistentStructureTest {
     @BeforeEach
     private void setup() {
 
-        field1 = new PersistentField("field1", "value", false, false, false);
-        field2 = new PersistentField("field2", "value", false, false, false);
-        parentfield1 = new PersistentField("parentfield1", "value", false, false, false);
-        parentfield2 = new PersistentField("parentfield2", "value", false, false, false);
+        field1 = new PersistentField("field1", Optional.of("value"), false, false, false);
+        field2 = new PersistentField("field2", Optional.of("value"), false, false, false);
+        parentfield1 = new PersistentField("parentfield1", Optional.of("value"), false, false, false);
+        parentfield2 = new PersistentField("parentfield2", Optional.of("value"), false, false, false);
 
         parent = new PersistentStructure("parenttablename", List.of(parentfield1, parentfield2));
         structure = new PersistentStructure("tablename", List.of(field1, field2), Optional.of(parent));

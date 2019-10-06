@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -74,8 +75,8 @@ public class SQLiteConnectionTest {
     public void testInsertQuery() {
 
         final PersistentField[] dummyFields = {
-                new PersistentField("id", 1, false, false, false),
-                new PersistentField("name", "mesi", false, false, false)
+                new PersistentField("id", Optional.of(1), false, false, false),
+                new PersistentField("name", Optional.of("mesi"), false, false, false)
         };
 
         final String expected = "INSERT INTO tablename (id, name) VALUES (1, 'mesi');";

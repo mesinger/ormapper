@@ -2,7 +2,7 @@ package mesi.orm.conn;
 
 import mesi.orm.persistence.PersistentField;
 
-class MSSQLConnection extends DatabaseConnection{
+final class MSSQLConnection extends DatabaseConnection{
     MSSQLConnection(String connectionstring) {
         super(JDBCDRIVERNAME.MSSQL, connectionstring);
     }

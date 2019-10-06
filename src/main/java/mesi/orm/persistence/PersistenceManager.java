@@ -20,7 +20,7 @@ public interface PersistenceManager {
      * @return true, if object is annotated with @Persistent, false otherwise
      */
     static boolean isObjectPersistent(Object o) {
-        return o.getClass().getAnnotation(Persistent.class) != null;
+        return isObjectPersistent(o.getClass());
     }
     static boolean isObjectPersistent(Class clazz) {
         return clazz.getAnnotation(Persistent.class) != null;
