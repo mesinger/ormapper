@@ -35,7 +35,7 @@ public class PersistenceManagerUtilsTest {
 
         Object dummy = new Object();
 
-        final var expected = dummy.getClass().getName() + "_table";
+        final var expected = "java_lang_Object_table";
 
         assertEquals(expected, PersistenceManagerUtils.getPersistenceObjectsTableName(dummy));
         assertEquals(expected, PersistenceManagerUtils.getPersistenceObjectsTableName(dummy.getClass()));

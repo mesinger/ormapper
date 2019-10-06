@@ -39,4 +39,28 @@ class PersistentStructure {
 
         return all;
     }
+
+    Optional<Long> getPersistentStrucutreId() {
+        try {
+            return getAllFields().stream()
+                    .filter(field -> field.isPrimary())
+                    .map(field -> (Long) field.getValue())
+                    .findFirst();
+        } catch (ClassCastException ex) {
+            return Optional.empty();
+        }
+    }
+
+    void setPrimaryKey(Long id) {
+        fields.removeIf(field -> field.getName().toLowerCase().equals("id") && field.isPrimary());
+        fields.add(
+                new PersistentField(
+                        "id",
+                        Optional.of(id),
+                        false,
+                        true,
+                        false
+                )
+        );
+    }
 }

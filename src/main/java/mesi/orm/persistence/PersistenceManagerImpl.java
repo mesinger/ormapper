@@ -38,6 +38,10 @@ final class PersistenceManagerImpl implements PersistenceManager {
             final String tableName = PersistenceManagerUtils.getPersistenceObjectsTableName(o);
             final var persistentStructure = PersistenceManagerUtils.getPersistentStructureOf(o, o.getClass());
 
+            if(persistentStructure.getPersistentStrucutreId().isEmpty()) {
+                persistentStructure.setPrimaryKey(1L);
+            }
+
             if(!databaseConnection.tableExists(tableName)) {
                 databaseConnection.createTable(tableName, PersistenceManagerUtils.getTableEntriesOfPersistentStructure(persistentStructure).toArray(TableEntry[]::new));
             }

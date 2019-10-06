@@ -49,4 +49,15 @@ public class PersistentStructureTest {
         var allFields = structure.getAllFields();
         assertTrue(allFields.containsAll(List.of(field1, field2, parentfield1, parentfield2)));
     }
+
+    @Test
+    public void testGetPersistentStrucutresId() {
+
+        final Long ID = 21323L;
+        final var idField = new PersistentField("id", Optional.of(ID), false, true, false);
+        final var psWithId = new PersistentStructure("tablename", List.of(idField, field1));
+
+        assertEquals(ID, psWithId.getPersistentStrucutreId().orElse(0L));
+        assertEquals(Optional.empty(), structure.getPersistentStrucutreId());
+    }
 }

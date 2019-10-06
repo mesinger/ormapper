@@ -24,7 +24,7 @@ interface PersistenceManagerUtils {
             entries.add(
                     new TableEntry(
                             field.getName(),
-                            TableEntry.getTypeOf(field.getValue()),
+                            TableEntry.getTypeOf(field.getValue().getClass().cast(field.getValue())),
                             field.isNullable(),
                             field.isPrimary(),
                             field.isForeign(),
@@ -90,6 +90,6 @@ interface PersistenceManagerUtils {
      * @return {classname}_table
      */
     static String getPersistenceObjectsTableName(Class cls) {
-        return cls.getName() + "_table";
+        return cls.getName().replaceAll("\\.", "_") + "_table";
     }
 }

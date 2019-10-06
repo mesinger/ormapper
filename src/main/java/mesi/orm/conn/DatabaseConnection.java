@@ -91,17 +91,19 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
 
         try {
 
-            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
             rawConnection.setAutoCommit(false);
 
             var preparedStatement = rawConnection.prepareStatement(query);
             preparedStatement.setString(1, tableName);
 
-            boolean tableExists = preparedStatement.execute();
+            var resultSet = preparedStatement.executeQuery();
+            boolean tableExists = resultSet.next();
 
             rawConnection.commit();
             rawConnection.setAutoCommit(true);
 
+            resultSet.close();
             preparedStatement.close();
 
             return tableExists;
