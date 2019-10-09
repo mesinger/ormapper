@@ -1,6 +1,7 @@
 package mesi.orm.conn;
 
 import mesi.orm.persistence.PersistentField;
+import mesi.orm.persistence.PersistentStructure;
 
 /***
  * Performs CRUD operations on the underlying database system
@@ -23,10 +24,10 @@ interface DatabaseModifier {
 
     /**
      * inserts a new row
-     * of given fields in
-     * a table
+     * of a given list of fields in
+     * a table named tableName
      * @param tableName name of table
-     * @param fields columns which are inserted
+     * @param fields list of fields
      */
     void insert(String tableName, PersistentField... fields);
 }

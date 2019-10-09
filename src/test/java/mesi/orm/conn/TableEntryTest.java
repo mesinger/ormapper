@@ -19,7 +19,7 @@ public class TableEntryTest {
 
     @Test
     public void testEntryPrimaryKeyTranslation() {
-        assertEquals(" PRIMARY KEY", TableEntryPrimaryKeyTranslation.sqlite(true));
+        assertEquals(" PRIMARY KEY AUTOINCREMENT", TableEntryPrimaryKeyTranslation.sqlite(true));
         assertEquals("", TableEntryPrimaryKeyTranslation.sqlite(false));
     }
 

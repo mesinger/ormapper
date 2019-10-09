@@ -44,6 +44,7 @@ public final class SQLiteConnection extends DatabaseConnection {
     @Override
     protected String insertQuery(String tableName, PersistentField... fields) {
 
+
         StringBuilder query = new StringBuilder("INSERT INTO " + tableName + " (");
 
         var columnNames = Arrays.stream(fields).map(field -> field.getName()).collect(Collectors.toList());

@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistentStructureTest {
 
@@ -59,5 +58,16 @@ public class PersistentStructureTest {
 
         assertEquals(ID, psWithId.getPersistentStrucutreId().orElse(0L));
         assertEquals(Optional.empty(), structure.getPersistentStrucutreId());
+    }
+
+    @Test
+    public void testHasId() {
+
+        final Long ID = 21323L;
+        final var idField = new PersistentField("id", Optional.of(ID), false, true, false);
+        final var psWithId = new PersistentStructure("tablename", List.of(idField, field1));
+
+        assertTrue(psWithId.hasId());
+        assertFalse(structure.hasId());
     }
 }

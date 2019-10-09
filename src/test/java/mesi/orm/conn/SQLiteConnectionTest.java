@@ -39,7 +39,7 @@ public class SQLiteConnectionTest {
         final String tableName = "dummytable";
         final String expectation =
                 "CREATE TABLE " + tableName + " (\n"
-                        + "id INTEGER NOT NULL PRIMARY KEY, \n"
+                        + "id INTEGER PRIMARY KEY AUTOINCREMENT, \n"
                         + "string TEXT NOT NULL, \n"
                         + "double REAL, \n"
                         + "bool INTEGER NOT NULL, \n"
@@ -53,7 +53,6 @@ public class SQLiteConnectionTest {
         String actual = (String) pCreateTableQuery.invoke(connection,
                 tableName,
                 new TableEntry[] {
-                        new TableEntry("id", TableEntryType.INT, false, true, false, null, null),
                         new TableEntry("string", TableEntryType.STRING, false, false, false, null, null),
                         new TableEntry("double", TableEntryType.DOUBLE, true, false, false, null, null),
                         new TableEntry("bool", TableEntryType.BOOL, false, false, false, null, null),

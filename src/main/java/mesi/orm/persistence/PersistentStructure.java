@@ -16,6 +16,7 @@ import java.util.Optional;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
+public
 class PersistentStructure {
 
     @NonNull
@@ -30,7 +31,7 @@ class PersistentStructure {
     /**
      * @return all fields and parent fields recursively
      */
-    List<PersistentField> getAllFields() {
+    public List<PersistentField> getAllFields() {
 
         var all = new ArrayList<PersistentField>();
         all.addAll(fields);
@@ -49,6 +50,10 @@ class PersistentStructure {
         } catch (ClassCastException ex) {
             return Optional.empty();
         }
+    }
+
+    public boolean hasId() {
+        return getPersistentStrucutreId().isPresent();
     }
 
     void setPrimaryKey(Long id) {

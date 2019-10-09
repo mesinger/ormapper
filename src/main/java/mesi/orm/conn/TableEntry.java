@@ -83,6 +83,8 @@ interface TableEntryTranslator {
 
         StringBuilder sql = new StringBuilder();
 
+        sql.append("id INTEGER PRIMARY KEY AUTOINCREMENT, \n");
+
         Arrays.stream(entries)
                 .map(entry -> entry.getEntryName() + " " +
                                 TableEntryTypeTranslation.sqlite(entry.getEntryType()) +
@@ -143,7 +145,7 @@ interface TableEntryNullableTranslation {
  */
 interface TableEntryPrimaryKeyTranslation {
     static String sqlite(boolean isPrimaryKey) {
-        return isPrimaryKey ? " PRIMARY KEY" : "";
+        return isPrimaryKey ? " PRIMARY KEY AUTOINCREMENT" : "";
     }
 }
 

@@ -23,8 +23,8 @@ public class PersistenceManagerUtilsTest {
     public void testGetPersistentStructureOf() throws Exception {
 
         assertEquals(PersistenceManagerUtils.getPersistenceObjectsTableName(student), persistentStructure.getTableName());
-        assertEquals(2, persistentStructure.getFields().size());
-        assertEquals(4, persistentStructure.getAllFields().size());
+        assertEquals(1, persistentStructure.getFields().size());
+        assertEquals(3, persistentStructure.getAllFields().size());
         assertNotNull(persistentStructure.getParentStructure().get());
         assertEquals(2, persistentStructure.getParentStructure().get().getAllFields().size());
         assertNull(persistentStructure.getParentStructure().get().getParentStructure().orElseGet(() -> null));

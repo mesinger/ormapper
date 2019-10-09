@@ -24,7 +24,7 @@ interface PersistenceManagerUtils {
             entries.add(
                     new TableEntry(
                             field.getName(),
-                            TableEntry.getTypeOf(field.getValue().getClass().cast(field.getValue())),
+                            TableEntry.getTypeOf(field.getValue()),
                             field.isNullable(),
                             field.isPrimary(),
                             field.isForeign(),
@@ -67,7 +67,7 @@ interface PersistenceManagerUtils {
             boolean isPrimary = field.getAnnotation(Id.class) != null;
             boolean isForeign = field.getAnnotation(Foreign.class) != null;
 
-            if(isPrimary && !o.getClass().equals(cls)) {
+            if(isPrimary) {
                 continue;
             }
 

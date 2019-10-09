@@ -3,6 +3,7 @@ package mesi.orm.conn;
 import mesi.orm.exception.ORMesiConnectionException;
 import mesi.orm.exception.ORMesiSqlException;
 import mesi.orm.persistence.PersistentField;
+import mesi.orm.persistence.PersistentStructure;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
