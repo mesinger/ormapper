@@ -9,7 +9,7 @@ class SQLiteCreateQuery extends CreateQuery {
     }
 
     @Override
-    CreateQuery addColumn(String name, QUERYTYPE dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef) {
+    protected CreateQuery addColumn(String name, QUERYTYPE dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef) {
 
         head.append((isForeign) ? "fk_" : "");
         head.append(name + " ");
