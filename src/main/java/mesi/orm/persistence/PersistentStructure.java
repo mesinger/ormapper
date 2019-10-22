@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * objects of this class
@@ -41,11 +42,20 @@ class PersistentStructure {
         return all;
     }
 
+    /**
+     * @return all foreign persistent fields
+     */
+    List<PersistentField> getAllForeignFields() {
+        return getAllFields().stream()
+                .filter(field -> field.isForeign())
+                .collect(Collectors.toList());
+    }
+
     Optional<Long> getPersistentStrucutreId() {
         try {
             return getAllFields().stream()
                     .filter(field -> field.isPrimary())
-                    .map(field -> (Long) field.getValue())
+                    .map(field -> (Long) field.getValue().get())
                     .findFirst();
         } catch (ClassCastException ex) {
             return Optional.empty();

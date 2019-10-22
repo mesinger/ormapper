@@ -29,8 +29,4 @@ public class PersistentField {
 
     private String foreignTableName = "";
     private String foreignRef = "";
-
-    public Object getValue() {
-        return value.orElse(new Object());
-    }
 }

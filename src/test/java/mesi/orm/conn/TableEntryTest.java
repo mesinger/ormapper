@@ -28,7 +28,7 @@ public class TableEntryTest {
         final String entryName = "entryname";
         final String foreignTableName = "foreigntable";
         final String foreignRef = "id";
-        final String expected = "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
+        final String expected = "FOREIGN KEY (fk_" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
 
         assertEquals(expected, TableEntryForeignKeyTranslation.sqlite(entryName, foreignTableName, foreignRef));
     }

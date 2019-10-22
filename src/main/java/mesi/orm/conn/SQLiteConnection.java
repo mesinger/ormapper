@@ -50,10 +50,10 @@ public final class SQLiteConnection extends DatabaseConnection {
         var columnNames = Arrays.stream(fields).map(field -> field.getName()).collect(Collectors.toList());
         var values = Arrays.stream(fields).map(field -> {
             if(TableEntry.getTypeOf(field.getValue()).equals(TableEntryType.STRING)) {
-                return "'" + field.getValue() + "'";
+                return "'" + field.getValue().get() + "'";
             }
             else {
-                return field.getValue();
+                return field.getValue().get();
             }
         }).collect(Collectors.toList());
 

@@ -25,6 +25,26 @@ final class PersistenceManagerImpl implements PersistenceManager {
     @Override
     public void persist(Object o) {
 
+        checkPersistenceValidityOfObject(o);
+
+        final String tableName = PersistenceManagerUtils.getPersistenceObjectsTableName(o);
+        final var persistentStructure = PersistenceManagerUtils.getPersistentStructureOf(o, o.getClass());
+
+        createTableIfNeeded(tableName, persistentStructure);
+
+        persistentStructure.getAllForeignFields().stream()
+                .forEach(foreign -> foreign.getValue().ifPresent(foreignObject -> persist(foreignObject)));
+
+
+
+        databaseConnection.insert(tableName, persistentStructure.getAllFields().toArray(PersistentField[]::new));
+    }
+
+    /**
+     * checks if the given object is a valid perstent object, otherwise throws runtimeexception
+     * @param o
+     */
+    private void checkPersistenceValidityOfObject(Object o) {
         if(!PersistenceManager.isObjectPersistent(o)) {
             throw new ORMesiPersistenceException("Object of type " + o.getClass().getName() + " misses the " + Persistent.class.getName() + " annotation");
         }
@@ -32,20 +52,11 @@ final class PersistenceManagerImpl implements PersistenceManager {
         if(!PersistenceManager.hasPersistentObjectIdentification(o)) {
             throw new ORMesiPersistenceException("Persistent objects need exactly one member of type Long (or long) annotated with " + Id.class.getName());
         }
+    }
 
-        try {
-
-            final String tableName = PersistenceManagerUtils.getPersistenceObjectsTableName(o);
-            final var persistentStructure = PersistenceManagerUtils.getPersistentStructureOf(o, o.getClass());
-
-            if(!databaseConnection.tableExists(tableName)) {
-                databaseConnection.createTable(tableName, PersistenceManagerUtils.getTableEntriesOfPersistentStructure(persistentStructure).toArray(TableEntry[]::new));
-            }
-
-            databaseConnection.insert(tableName, persistentStructure.getAllFields().toArray(PersistentField[]::new));
-
-        } catch (IllegalAccessException e) {
-            throw new ORMesiPersistenceException("Class " + o.getClass().getName() + " cannot be persisted.\n" + e.getMessage());
+    private void createTableIfNeeded(String tableName, PersistentStructure structure) {
+        if(!databaseConnection.tableExists(tableName)) {
+            databaseConnection.createTable(tableName, PersistenceManagerUtils.getTableEntriesOfPersistentStructure(structure).toArray(TableEntry[]::new));
         }
     }
 }

@@ -43,8 +43,8 @@ public class SQLiteConnectionTest {
                         + "string TEXT NOT NULL, \n"
                         + "double REAL, \n"
                         + "bool INTEGER NOT NULL, \n"
-                        + "foreign_id INTEGER NOT NULL, \n"
-                        + "FOREIGN KEY (foreign_id) REFERENCES foreigntable (id)\n"
+                        + "fk_foreign_id INTEGER NOT NULL, \n"
+                        + "FOREIGN KEY (fk_foreign_id) REFERENCES foreigntable (id)\n"
                         + ");";
 
         Method pCreateTableQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);

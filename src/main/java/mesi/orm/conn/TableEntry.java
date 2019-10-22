@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 import mesi.orm.exception.ORMesiPersistenceException;
+import mesi.orm.persistence.PersistenceManager;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /***
  * data class which describes an
@@ -32,6 +34,7 @@ public class TableEntry {
     /**
      * translates an objects type
      * to a supported database data type
+     *
      * @param o
      * @return corresponding database entry type, or throws on invalid objects
      */
@@ -39,23 +42,28 @@ public class TableEntry {
 
         var type = o.getClass();
 
-        if(Number.class.isAssignableFrom(type)) {
+        if(type.equals(Optional.class)) {
+            type = ((Optional) o).get().getClass();
+        }
 
-            if(type.equals(double.class) || type.equals(Double.class) || type.equals(float.class) || type.equals(Float.class)) {
+        if (Number.class.isAssignableFrom(type)) {
+
+            if (type.equals(double.class) || type.equals(Double.class) || type.equals(float.class) || type.equals(Float.class)) {
                 return TableEntryType.DOUBLE;
-            }
-            else {
+            } else {
                 return TableEntryType.INT;
             }
-        }
-        else if(type.equals(String.class)) {
+        } else if (type.equals(String.class)) {
             return TableEntryType.STRING;
-        }
-        else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
+        } else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
             return TableEntryType.BOOL;
         }
         else {
-            throw new ORMesiPersistenceException("Cannot persist members of type " + type.getName());
+            if(PersistenceManager.isObjectPersistent(type)) {
+                return TableEntryType.INT;
+            } else {
+                throw new ORMesiPersistenceException("Cannot persist members of type " + type.getName());
+            }
         }
     }
 }
@@ -86,7 +94,7 @@ interface TableEntryTranslator {
         sql.append("id INTEGER PRIMARY KEY AUTOINCREMENT, \n");
 
         Arrays.stream(entries)
-                .map(entry -> entry.getEntryName() + " " +
+                .map(entry -> (entry.isForeign() ? "fk_" : "") + entry.getEntryName() + " " +
                                 TableEntryTypeTranslation.sqlite(entry.getEntryType()) +
                                 TableEntryNullableTranslation.sqlite(entry.isNullable()) +
                                 TableEntryPrimaryKeyTranslation.sqlite(entry.isPrimary()) + ", \n")
@@ -155,6 +163,6 @@ interface TableEntryPrimaryKeyTranslation {
  */
 interface TableEntryForeignKeyTranslation {
     static String sqlite(String entryName, String foreignTableName, String foreignRef) {
-        return "FOREIGN KEY (" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
+        return "FOREIGN KEY (fk_" + entryName + ") REFERENCES " + foreignTableName + " (" + foreignRef + ")";
     }
 }
