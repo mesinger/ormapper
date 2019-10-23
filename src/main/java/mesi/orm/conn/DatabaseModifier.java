@@ -1,7 +1,7 @@
 package mesi.orm.conn;
 
 import mesi.orm.persistence.PersistentField;
-import mesi.orm.persistence.PersistentStructure;
+import mesi.orm.query.Query;
 
 /***
  * Performs CRUD operations on the underlying database system
@@ -10,10 +10,9 @@ interface DatabaseModifier {
 
     /***
      * creates a new table on the database system
-     * @param tableName name of the created table
-     * @param entries list of columns
+     * @param query sql query for creating a given table
      */
-    void createTable(String tableName, TableEntry... entries);
+    void createTable(Query query);
 
     /***
      * checks if a given table is already present in the database system

@@ -6,7 +6,7 @@ import mesi.orm.persistence.Nullable;
 
 import java.lang.reflect.Field;
 
-abstract class CreateQuery extends Query{
+public abstract class CreateQuery extends Query{
 
     protected CreateQuery(String tableName) {
 

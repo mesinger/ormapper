@@ -3,8 +3,10 @@ package mesi.orm.persistence;
 import com.google.inject.Inject;
 import lombok.NoArgsConstructor;
 import mesi.orm.conn.DatabaseConnection;
-import mesi.orm.conn.TableEntry;
 import mesi.orm.exception.ORMesiPersistenceException;
+import mesi.orm.query.QueryBuilder;
+
+import java.util.stream.Collectors;
 
 /***
  * Persistence manager implementation
@@ -14,12 +16,15 @@ import mesi.orm.exception.ORMesiPersistenceException;
 final class PersistenceManagerImpl implements PersistenceManager {
 
     private DatabaseConnection databaseConnection;
+    private QueryBuilder queryBuilder;
 
     @Inject
-    PersistenceManagerImpl(DatabaseConnection connection) {
+    PersistenceManagerImpl(DatabaseConnection connection, QueryBuilder queryBuilder) {
 
         databaseConnection = connection;
         databaseConnection.open();
+
+        this.queryBuilder = queryBuilder;
     }
 
     @Override
@@ -30,12 +35,10 @@ final class PersistenceManagerImpl implements PersistenceManager {
         final String tableName = PersistenceManagerUtils.getPersistenceObjectsTableName(o);
         final var persistentStructure = PersistenceManagerUtils.getPersistentStructureOf(o, o.getClass());
 
-        createTableIfNeeded(tableName, persistentStructure);
+        createTableIfNeeded(tableName, o);
 
         persistentStructure.getAllForeignFields().stream()
                 .forEach(foreign -> foreign.getValue().ifPresent(foreignObject -> persist(foreignObject)));
-
-
 
         databaseConnection.insert(tableName, persistentStructure.getAllFields().toArray(PersistentField[]::new));
     }
@@ -54,9 +57,20 @@ final class PersistenceManagerImpl implements PersistenceManager {
         }
     }
 
-    private void createTableIfNeeded(String tableName, PersistentStructure structure) {
+    private void createTableIfNeeded(String tableName, Object o) {
         if(!databaseConnection.tableExists(tableName)) {
-            databaseConnection.createTable(tableName, PersistenceManagerUtils.getTableEntriesOfPersistentStructure(structure).toArray(TableEntry[]::new));
+
+            var query = queryBuilder.create(tableName);
+
+            var primaryField = PersistentUtil.getPrimaryField(o).orElseThrow(() -> new ORMesiPersistenceException("Object of type " + o.getClass().getName() + " misses primary key member"));
+            var fields = PersistentUtil.getAllPersistentMembers(o).stream().filter(field -> field.getAnnotation(Id.class) == null).collect(Collectors.toList());
+            fields.add(primaryField);
+
+            fields.stream().forEach(
+                    field -> query.addColumn(field, o.getClass())
+            );
+
+            databaseConnection.createTable(query);
         }
     }
 }

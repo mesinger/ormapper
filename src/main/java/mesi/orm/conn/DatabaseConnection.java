@@ -3,7 +3,7 @@ package mesi.orm.conn;
 import mesi.orm.exception.ORMesiConnectionException;
 import mesi.orm.exception.ORMesiSqlException;
 import mesi.orm.persistence.PersistentField;
-import mesi.orm.persistence.PersistentStructure;
+import mesi.orm.query.Query;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -63,9 +63,9 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
     }
 
     @Override
-    public void createTable(String tableName, TableEntry... entries) {
+    public void createTable(Query query) {
 
-        final String sql = createTableQuery(tableName, entries);
+        final String sql = query.raw();
 
         try {
 

@@ -6,6 +6,8 @@ import mesi.orm.conn.DatabaseConnection;
 import mesi.orm.conn.DatabaseConnectionFactory;
 import mesi.orm.conn.RDBMS;
 import mesi.orm.conn.SQLiteConnection;
+import mesi.orm.query.QueryBuilder;
+import mesi.orm.query.QueryBuilderFactory;
 
 /**
  * PersistenceManager modules used
@@ -30,6 +32,11 @@ abstract class PersistenceManagerModule {
         @Provides
         DatabaseConnection provideDbConnection() {
             return DatabaseConnectionFactory.create(RDBMS.SQLITE, connectionString);
+        }
+
+        @Provides
+        QueryBuilder provideQueryBuilder() {
+            return QueryBuilderFactory.create(RDBMS.SQLITE);
         }
     }
 }
