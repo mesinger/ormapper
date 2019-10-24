@@ -17,7 +17,7 @@ public class SQLiteSelectQueryTest {
     }
 
     @Test
-    public void testCreateStatement() {
+    public void testSelectQuery() {
 
         final var expected = "SELECT name, surname FROM mesi_orm_query_Person_table WHERE name='mesi' ORDER BY surname;";
 
@@ -28,12 +28,4 @@ public class SQLiteSelectQueryTest {
 
         assertEquals(expected, query.raw());
     }
-}
-
-@Persistent
-class Person {
-    @Id
-    private Long id;
-    private String name;
-    private String surname;
 }

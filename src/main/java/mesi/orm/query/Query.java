@@ -6,6 +6,6 @@ public abstract class Query {
     public String raw() {
         var query = head.append(tail);
         query.setLength(query.length() - 2);
-        return query.toString() + "\n);";
+        return query.toString() + ");";
     }
 }

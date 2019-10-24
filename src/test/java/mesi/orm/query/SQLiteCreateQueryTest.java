@@ -15,14 +15,14 @@ public class SQLiteCreateQueryTest {
     }
 
     @Test
-    public void testCreateStatement() {
+    public void testCreateQuery() {
 
         final var expected = "CREATE TABLE tablename(\n" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                 "name TEXT NOT NULL,\n" +
                 "surname TEXT,\n" +
                 "fk_other INTEGER NOT NULL,\n" +
-                "FOREIGN KEY (fk_other) REFERENCES foreigntablename (id)\n" +
+                "FOREIGN KEY (fk_other) REFERENCES foreigntablename (id)" +
                 ");";
 
         final var query = builder.create("tablename")

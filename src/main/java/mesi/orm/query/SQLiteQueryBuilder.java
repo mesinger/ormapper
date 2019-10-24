@@ -13,4 +13,9 @@ class SQLiteQueryBuilder implements QueryBuilder {
     public SelectQuery select(String... columns) {
         return new SQLiteSelectQuery(columns);
     }
+
+    @Override
+    public InsertQuery insert(Class persistentClass, Object persistentObject) {
+        return new SQLiteInsertQuery(persistentClass, persistentObject);
+    }
 }

@@ -14,4 +14,5 @@ import java.lang.annotation.Target;
 public @interface Foreign {
     String table();
     String ref();
+    ForeignRelation relationType();
 }
