@@ -1,0 +1,39 @@
+package mesi.orm.query;
+
+import mesi.orm.persistence.Id;
+import mesi.orm.persistence.Persistent;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class SQLiteSelectQueryTest {
+
+    private QueryBuilder builder;
+
+    @BeforeEach
+    public void setup() {
+        builder = new SQLiteQueryBuilder();
+    }
+
+    @Test
+    public void testCreateStatement() {
+
+        final var expected = "SELECT name, surname FROM mesi_orm_query_Person_table WHERE name='mesi' ORDER BY surname;";
+
+        final var query = builder.select("name", "surname")
+                .from(Person.class)
+                .where("name='mesi'")
+                .orderBy("surname");
+
+        assertEquals(expected, query.raw());
+    }
+}
+
+@Persistent
+class Person {
+    @Id
+    private Long id;
+    private String name;
+    private String surname;
+}

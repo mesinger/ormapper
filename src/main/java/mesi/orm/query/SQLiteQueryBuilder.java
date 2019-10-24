@@ -8,4 +8,9 @@ class SQLiteQueryBuilder implements QueryBuilder {
     public CreateQuery create(String tableName) {
         return new SQLiteCreateQuery(tableName);
     }
+
+    @Override
+    public SelectQuery select(String... columns) {
+        return new SQLiteSelectQuery(columns);
+    }
 }

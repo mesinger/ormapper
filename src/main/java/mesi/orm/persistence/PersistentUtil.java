@@ -28,4 +28,20 @@ public interface PersistentUtil {
                 .filter(field -> field.getAnnotation(Id.class) != null)
                 .findFirst();
     }
+
+    /**
+     * @param o
+     * @return {o.classname}_table
+     */
+    static String getPersistenceObjectsTableName(Object o) {
+        return getPersistenceObjectsTableName(o.getClass());
+    }
+
+    /**
+     * @param cls
+     * @return {classname}_table
+     */
+    static String getPersistenceObjectsTableName(Class cls) {
+        return cls.getName().replaceAll("\\.", "_") + "_table";
+    }
 }
