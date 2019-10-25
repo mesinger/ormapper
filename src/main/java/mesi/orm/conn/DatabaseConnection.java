@@ -115,9 +115,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
     }
 
     @Override
-    public void insert(String tableName, PersistentField... fields) {
-
-        final var query = insertQuery(tableName, fields);
+    public void insert(Query query) {
 
         try {
 
@@ -125,7 +123,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             rawConnection.setAutoCommit(false);
 
             var stmt = rawConnection.createStatement();
-            stmt.execute(query);
+            stmt.execute(query.raw());
 
             rawConnection.commit();
             rawConnection.setAutoCommit(true);

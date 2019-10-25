@@ -32,15 +32,9 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
         checkPersistenceValidityOfObject(o);
 
-        final String tableName = PersistenceManagerUtils.getPersistenceObjectsTableName(o);
-        final var persistentStructure = PersistenceManagerUtils.getPersistentStructureOf(o, o.getClass());
+        createTableIfNeeded(o);
 
-        createTableIfNeeded(tableName, o);
-
-        persistentStructure.getAllForeignFields().stream()
-                .forEach(foreign -> foreign.getValue().ifPresent(foreignObject -> persist(foreignObject)));
-
-        databaseConnection.insert(tableName, persistentStructure.getAllFields().toArray(PersistentField[]::new));
+        databaseConnection.insert(queryBuilder.insert(o.getClass(), o));
     }
 
     /**
@@ -57,7 +51,10 @@ final class PersistenceManagerImpl implements PersistenceManager {
         }
     }
 
-    private void createTableIfNeeded(String tableName, Object o) {
+    private void createTableIfNeeded(Object o) {
+
+        final var tableName = PersistentUtil.getPersistenceObjectsTableName(o);
+
         if(!databaseConnection.tableExists(tableName)) {
 
             var query = queryBuilder.create(tableName);

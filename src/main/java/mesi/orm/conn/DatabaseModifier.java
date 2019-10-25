@@ -1,6 +1,5 @@
 package mesi.orm.conn;
 
-import mesi.orm.persistence.PersistentField;
 import mesi.orm.query.Query;
 
 /***
@@ -25,8 +24,7 @@ interface DatabaseModifier {
      * inserts a new row
      * of a given list of fields in
      * a table named tableName
-     * @param tableName name of table
-     * @param fields list of fields
+     * @param query
      */
-    void insert(String tableName, PersistentField... fields);
+    void insert(Query query);
 }
