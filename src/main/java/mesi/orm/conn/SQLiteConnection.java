@@ -25,51 +25,7 @@ public final class SQLiteConnection extends DatabaseConnection {
     }
 
     @Override
-    protected String createTableQuery(String tableName, TableEntry... entries) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE " + tableName + " (\n");
-
-        sql.append(TableEntryTranslator.sqlite(entries));
-
-        sql.append("\n);");
-
-        return sql.toString();
-    }
-
-    @Override
     protected String tableExistsQuery() {
         return "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
-    }
-
-    @Override
-    protected String insertQuery(String tableName, PersistentField... fields) {
-
-        StringBuilder query = new StringBuilder("INSERT INTO " + tableName + " (");
-
-        var columnNames = Arrays.stream(fields).map(field -> field.getName()).collect(Collectors.toList());
-        var values = Arrays.stream(fields).map(field -> {
-            if(TableEntry.getTypeOf(field.getValue()).equals(TableEntryType.STRING)) {
-                return "'" + field.getValue().get() + "'";
-            }
-            else {
-                return field.getValue().get();
-            }
-        }).collect(Collectors.toList());
-
-        for(var columName : columnNames) {
-            query.append(columName + ", ");
-        }
-
-        query.setLength(query.length() - 2);
-        query.append(") VALUES (");
-
-        for(var value: values) {
-            query.append(value + ", ");
-        }
-
-        query.setLength(query.length() - 2);
-        query.append(");");
-
-        return query.toString();
     }
 }

@@ -34,53 +34,9 @@ public class SQLiteConnectionTest {
     }
 
     @Test
-    public void testCreateTableQuery() throws Exception {
-
-        final String tableName = "dummytable";
-        final String expectation =
-                "CREATE TABLE " + tableName + " (\n"
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT, \n"
-                        + "string TEXT NOT NULL, \n"
-                        + "double REAL, \n"
-                        + "bool INTEGER NOT NULL, \n"
-                        + "fk_foreign_id INTEGER NOT NULL, \n"
-                        + "FOREIGN KEY (fk_foreign_id) REFERENCES foreigntable (id)\n"
-                        + ");";
-
-        Method pCreateTableQuery = connection.getClass().getDeclaredMethod("createTableQuery", String.class, TableEntry[].class);
-        pCreateTableQuery.setAccessible(true);
-
-        String actual = (String) pCreateTableQuery.invoke(connection,
-                tableName,
-                new TableEntry[] {
-                        new TableEntry("string", TableEntryType.STRING, false, false, false, null, null),
-                        new TableEntry("double", TableEntryType.DOUBLE, true, false, false, null, null),
-                        new TableEntry("bool", TableEntryType.BOOL, false, false, false, null, null),
-                        new TableEntry("foreign_id", TableEntryType.INT, false, false, true, "foreigntable", "id")
-                }
-        );
-
-        assertEquals(expectation, actual);
-    }
-
-    @Test
     public void testTableExistsQuery() {
         final String expected = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;";
         final String actual = connection.tableExistsQuery();
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void testInsertQuery() {
-
-        final PersistentField[] dummyFields = {
-                new PersistentField("id", Optional.of(1), false, false, false),
-                new PersistentField("name", Optional.of("mesi"), false, false, false)
-        };
-
-        final String expected = "INSERT INTO tablename (id, name) VALUES (1, 'mesi');";
-        final String actual = connection.insertQuery("tablename", dummyFields);
-
         assertEquals(expected, actual);
     }
 

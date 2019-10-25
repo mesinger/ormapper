@@ -136,7 +136,5 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
     }
 
     // abstract query creation functions
-    protected abstract String createTableQuery(String tableName, TableEntry... entries);
     protected abstract String tableExistsQuery();
-    protected abstract String insertQuery(String tableName, PersistentField... fields);
 }
