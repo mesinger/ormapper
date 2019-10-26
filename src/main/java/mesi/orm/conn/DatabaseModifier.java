@@ -25,6 +25,7 @@ interface DatabaseModifier {
      * of a given list of fields in
      * a table named tableName
      * @param query
+     * @return generated primary key
      */
-    void insert(Query query);
+    long insert(Query query);
 }

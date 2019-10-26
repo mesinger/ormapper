@@ -41,7 +41,15 @@ final class PersistenceManagerImpl implements PersistenceManager {
                 .filter(field -> field.getAnnotation(Foreign.class) != null)
                 .forEach(foreignField -> persistForeign(foreignField, o));
 
-        databaseConnection.insert(queryBuilder.insert(o.getClass(), o));
+        long generatedId = databaseConnection.insert(queryBuilder.insert(o.getClass(), o));
+
+        try {
+            final var idField = o.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(o, generatedId);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

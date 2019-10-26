@@ -114,7 +114,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
     }
 
     @Override
-    public void insert(Query query) {
+    public long insert(Query query) {
 
         try {
 
@@ -124,10 +124,25 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             var stmt = rawConnection.createStatement();
             stmt.execute(query.raw());
 
-            rawConnection.commit();
-            rawConnection.setAutoCommit(true);
+            var rs = stmt.getGeneratedKeys();
+            if(rs.next()) {
+                long generatedId = rs.getLong(1);
 
-            stmt.close();
+                rawConnection.commit();
+                rawConnection.setAutoCommit(true);
+
+                stmt.close();
+
+                return generatedId;
+            }
+            else {
+                rawConnection.rollback();
+                rawConnection.setAutoCommit(true);
+                stmt.close();
+
+                throw new ORMesiSqlException("cannot retrieve generated id while inserting persistent object");
+            }
+
 
         } catch (SQLException e) {
             throw new ORMesiSqlException("error while processing query " + e.getMessage());
