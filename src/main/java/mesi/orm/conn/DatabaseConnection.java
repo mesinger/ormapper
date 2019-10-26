@@ -2,7 +2,6 @@ package mesi.orm.conn;
 
 import mesi.orm.exception.ORMesiConnectionException;
 import mesi.orm.exception.ORMesiSqlException;
-import mesi.orm.persistence.PersistentField;
 import mesi.orm.query.Query;
 
 import java.sql.Connection;

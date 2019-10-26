@@ -25,7 +25,7 @@ class SQLiteInsertQuery extends InsertQuery {
                         else return true;
                     }
                     catch (IllegalAccessException ex) {
-                        throw new ORMesiPersistenceException("leck mi am arsch");
+                        throw new ORMesiPersistenceException(ex.getMessage());
                     }
                 })
                 .map(field -> {
@@ -39,6 +39,9 @@ class SQLiteInsertQuery extends InsertQuery {
 
                         if(field.getAnnotation(Foreign.class) != null) {
                             name = "fk_" + field.getName();
+                            final var idField = value.getClass().getDeclaredField("id");
+                            idField.setAccessible(true);
+                            value = idField.get(value);
                         }
 
                         return new Irgendwas(name, value);

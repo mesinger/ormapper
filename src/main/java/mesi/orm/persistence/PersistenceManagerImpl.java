@@ -6,6 +6,9 @@ import mesi.orm.conn.DatabaseConnection;
 import mesi.orm.exception.ORMesiPersistenceException;
 import mesi.orm.query.QueryBuilder;
 
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /***
@@ -33,6 +36,10 @@ final class PersistenceManagerImpl implements PersistenceManager {
         checkPersistenceValidityOfObject(o);
 
         createTableIfNeeded(o);
+
+        PersistentUtil.getAllPersistentMembers(o).stream()
+                .filter(field -> field.getAnnotation(Foreign.class) != null)
+                .forEach(foreignField -> persistForeign(foreignField, o));
 
         databaseConnection.insert(queryBuilder.insert(o.getClass(), o));
     }
@@ -68,6 +75,45 @@ final class PersistenceManagerImpl implements PersistenceManager {
             );
 
             databaseConnection.createTable(query);
+        }
+    }
+
+    private void persistForeign(Field foreignField, Object o) {
+
+        try {
+
+            foreignField.setAccessible(true);
+
+            final var foreignAnnotation = foreignField.getAnnotation(Foreign.class);
+            final var foreignRelation = foreignAnnotation.relationType();
+            final var foreignObject = foreignField.get(o);
+
+            switch (foreignRelation) {
+                case ONETOONE:
+                case ONETOMANY:
+
+                    if(foreignObject == null && foreignField.getAnnotation(Nullable.class) == null) {
+                        throw new ORMesiPersistenceException("member " + foreignField.getName() + " is null, but not annotated with " + Nullable.class.getName());
+                    }
+                    else if(foreignObject != null) {
+                        persist(foreignObject);
+                    }
+
+                    return;
+                case MANYTOONE:
+
+                    if(!(foreignObject instanceof Set) || !(foreignObject instanceof List)) {
+                        throw new ORMesiPersistenceException("many to one or many to many relations have to be implemented as List or Set");
+                    }
+
+
+
+                case MANYTOMANY:
+
+            }
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 }

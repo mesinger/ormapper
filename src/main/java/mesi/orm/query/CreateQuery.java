@@ -3,6 +3,7 @@ package mesi.orm.query;
 import mesi.orm.persistence.Foreign;
 import mesi.orm.persistence.Id;
 import mesi.orm.persistence.Nullable;
+import mesi.orm.persistence.PersistentUtil;
 
 import java.lang.reflect.Field;
 
@@ -28,8 +29,8 @@ public abstract class CreateQuery extends Query{
         String foreignRef = null;
 
         if(isForeign) {
-            foreignTable = reflectedField.getAnnotation(Foreign.class).table();
-            foreignRef = reflectedField.getAnnotation(Foreign.class).ref();
+            foreignTable = PersistentUtil.getPersistenceObjectsTableName(reflectedField.getDeclaringClass());
+            foreignRef = "id";
         }
 
         return addColumn(name, dataType, isPrimary, isNullable, isForeign, foreignTable, foreignRef);

@@ -12,7 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Foreign {
-    String table();
-    String ref();
     ForeignRelation relationType();
 }
