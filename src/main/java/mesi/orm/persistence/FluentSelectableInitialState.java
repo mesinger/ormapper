@@ -3,6 +3,8 @@ package mesi.orm.persistence;
 import mesi.orm.exception.ORMesiQueryException;
 import mesi.orm.query.FluentSelectable;
 
+import java.util.List;
+
 final class FluentSelectableInitialState extends FluentSelectableState {
 
     FluentSelectableInitialState(PersistenceManagerImpl pm) {
@@ -18,26 +20,31 @@ final class FluentSelectableInitialState extends FluentSelectableState {
 
     @Override
     public FluentSelectable from(Class persistentClass) {
-        throw new ORMesiQueryException("Invalid call: Every query has to start with select");
+        throwUsageError("Invalid call: Every query has to start with select");
+        return pm;
     }
 
     @Override
     public FluentSelectable where(String condition) {
-        throw new ORMesiQueryException("Invalid call: Every query has to start with select");
+        throwUsageError("Invalid call: Every query has to start with select");
+        return pm;
     }
 
     @Override
     public FluentSelectable andWhere(String condition) {
-        throw new ORMesiQueryException("Invalid call: Every query has to start with select");
+        throwUsageError("Invalid call: Every query has to start with select");
+        return pm;
     }
 
     @Override
     public FluentSelectable orWhere(String condition) {
-        throw new ORMesiQueryException("Invalid call: Every query has to start with select");
+        throwUsageError("Invalid call: Every query has to start with select");
+        return pm;
     }
 
     @Override
     public FluentSelectable orderBy(String... columns) {
-        throw new ORMesiQueryException("Invalid call: Every query has to start with select");
+        throwUsageError("Invalid call: Every query has to start with select");
+        return pm;
     }
 }

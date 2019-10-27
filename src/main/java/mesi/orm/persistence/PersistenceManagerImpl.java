@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mesi.orm.conn.DatabaseConnection;
+import mesi.orm.conn.DisposeableResultSet;
 import mesi.orm.exception.ORMesiPersistenceException;
+import mesi.orm.exception.ORMesiQueryException;
 import mesi.orm.query.FluentSelectable;
 import mesi.orm.query.QueryBuilder;
 import mesi.orm.query.SelectQuery;
@@ -58,6 +60,29 @@ final class PersistenceManagerImpl implements PersistenceManager {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public List<Object> query() {
+
+        final var query = selectableState.query;
+        final var targetClass = query.getTargetClass().orElseThrow(() -> new ORMesiQueryException("Missing target class"));
+
+        if(query == null) {
+            throw new ORMesiQueryException("Invalid query statement");
+        }
+
+        try (var drs = databaseConnection.select(query)) {
+
+            final var rs = drs.getResultSet();
+
+            
+
+        } catch (Exception e) {
+            throw new ORMesiQueryException("Error while reading from query result");
+        }
+
+        return null;
     }
 
     /**
@@ -169,6 +194,4 @@ final class PersistenceManagerImpl implements PersistenceManager {
         selectableState.orderBy(columns);
         return this;
     }
-
-
 }

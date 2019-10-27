@@ -11,7 +11,7 @@ import java.sql.SQLException;
 /**
  * Base class for connections to different rdbm systems
  */
-public abstract class DatabaseConnection implements DatabaseConnector, DatabaseModifier {
+public abstract class DatabaseConnection implements DatabaseConnector, DatabaseModifier, DatabaseReader {
 
     protected final String DRIVER_CLASS_NAME;
     protected final String JDBC_URL;
@@ -143,6 +143,26 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
                 throw new ORMesiSqlException("cannot retrieve generated id while inserting persistent object");
             }
 
+
+        } catch (SQLException e) {
+            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+        }
+    }
+
+    @Override
+    public DisposeableResultSet select(Query query) {
+
+        try {
+
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            rawConnection.setAutoCommit(false);
+
+            var stmt = rawConnection.createStatement();
+            var resultSet = stmt.executeQuery(query.raw());
+
+            rawConnection.commit();
+
+            return new DisposeableResultSet(resultSet, stmt);
 
         } catch (SQLException e) {
             throw new ORMesiSqlException("error while processing query " + e.getMessage());

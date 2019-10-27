@@ -1,11 +1,18 @@
 package mesi.orm.query;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
+import java.util.Optional;
 
 public abstract class SelectQuery extends Query {
 
     protected StringBuilder wherePart = new StringBuilder();
     protected StringBuilder orderPart = new StringBuilder();
+
+    @Setter
+    private Class targetClass;
 
     protected SelectQuery(String... columns) {}
 
@@ -38,5 +45,10 @@ public abstract class SelectQuery extends Query {
          raw.append(";");
 
          return raw.toString();
+    }
+
+    public Optional<Class> getTargetClass() {
+        if(targetClass == null) return Optional.empty();
+        else return Optional.of(targetClass);
     }
 }

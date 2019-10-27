@@ -1,6 +1,5 @@
 package mesi.orm.persistence;
 
-import mesi.orm.exception.ORMesiQueryException;
 import mesi.orm.query.FluentSelectable;
 import mesi.orm.query.SelectQuery;
 
@@ -12,12 +11,14 @@ final class FluentSelectableFromState extends FluentSelectableState {
 
     @Override
     public FluentSelectable select(String... columns) {
-        throw new ORMesiQueryException("Invalid call: you can only call where or orderBy after from");
+        throwUsageError("Invalid call: you can only call where or orderBy after from");
+        return pm;
     }
 
     @Override
     public FluentSelectable from(Class persistentClass) {
-        throw new ORMesiQueryException("Invalid call: you can only call where or orderBy after from");
+        throwUsageError("Invalid call: you can only call where or orderBy after from");
+        return pm;
     }
 
     @Override
@@ -29,12 +30,14 @@ final class FluentSelectableFromState extends FluentSelectableState {
 
     @Override
     public FluentSelectable andWhere(String condition) {
-        throw new ORMesiQueryException("Invalid call: you can only call where or orderBy after from");
+        throwUsageError("Invalid call: you can only call where or orderBy after from");
+        return pm;
     }
 
     @Override
     public FluentSelectable orWhere(String condition) {
-        throw new ORMesiQueryException("Invalid call: you can only call where or orderBy after from");
+        throwUsageError("Invalid call: you can only call where or orderBy after from");
+        return pm;
     }
 
     @Override

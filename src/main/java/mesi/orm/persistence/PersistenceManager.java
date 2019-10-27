@@ -3,6 +3,7 @@ package mesi.orm.persistence;
 import mesi.orm.query.FluentSelectable;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 /***
  * interface for PersistenceManagers
@@ -15,6 +16,12 @@ public interface PersistenceManager extends FluentSelectable {
      * @param o object to be mapped (has to be annotated with @Persistent)
      */
     void persist(Object o);
+
+    default FluentSelectable select() {
+        return select("*");
+    }
+
+    List<Object> query();
 
     /***
      * checks if an object is annotated as Persistent
