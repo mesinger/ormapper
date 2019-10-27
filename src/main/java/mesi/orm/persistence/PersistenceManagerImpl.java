@@ -1,10 +1,15 @@
 package mesi.orm.persistence;
 
 import com.google.inject.Inject;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mesi.orm.conn.DatabaseConnection;
 import mesi.orm.exception.ORMesiPersistenceException;
+import mesi.orm.query.FluentSelectable;
 import mesi.orm.query.QueryBuilder;
+import mesi.orm.query.SelectQuery;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -19,7 +24,10 @@ import java.util.stream.Collectors;
 final class PersistenceManagerImpl implements PersistenceManager {
 
     private DatabaseConnection databaseConnection;
+    @Getter(AccessLevel.PACKAGE)
     private QueryBuilder queryBuilder;
+    @Setter(AccessLevel.PACKAGE)
+    private FluentSelectableState selectableState = new FluentSelectableInitialState(this);
 
     @Inject
     PersistenceManagerImpl(DatabaseConnection connection, QueryBuilder queryBuilder) {
@@ -96,18 +104,19 @@ final class PersistenceManagerImpl implements PersistenceManager {
             final var foreignRelation = foreignAnnotation.relationType();
             final var foreignObject = foreignField.get(o);
 
+            if(foreignObject == null && foreignField.getAnnotation(Nullable.class) == null) {
+                throw new ORMesiPersistenceException("member " + foreignField.getName() + " is null, but not annotated with " + Nullable.class.getName());
+            }
+
             switch (foreignRelation) {
                 case ONETOONE:
                 case ONETOMANY:
 
-                    if(foreignObject == null && foreignField.getAnnotation(Nullable.class) == null) {
-                        throw new ORMesiPersistenceException("member " + foreignField.getName() + " is null, but not annotated with " + Nullable.class.getName());
-                    }
-                    else if(foreignObject != null) {
+                    if(foreignObject != null) {
                         persist(foreignObject);
                     }
 
-                    return;
+                    break;
                 case MANYTOONE:
 
                     if(!(foreignObject instanceof Set) || !(foreignObject instanceof List)) {
@@ -117,11 +126,49 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
 
                 case MANYTOMANY:
-
+                    // TODO
             }
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public FluentSelectable select(String... columns) {
+        selectableState.select(columns);
+        return this;
+    }
+
+    @Override
+    public FluentSelectable from(Class persistentClass) {
+        selectableState.from(persistentClass);
+        return this;
+    }
+
+    @Override
+    public FluentSelectable where(String condition) {
+        selectableState.where(condition);
+        return this;
+    }
+
+    @Override
+    public FluentSelectable andWhere(String condition) {
+        selectableState.andWhere(condition);
+        return this;
+    }
+
+    @Override
+    public FluentSelectable orWhere(String condition) {
+        selectableState.orWhere(condition);
+        return this;
+    }
+
+    @Override
+    public FluentSelectable orderBy(String... columns) {
+        selectableState.orderBy(columns);
+        return this;
+    }
+
+
 }

@@ -12,6 +12,8 @@ public abstract class SelectQuery extends Query {
     public abstract SelectQuery from(Class persistentClass);
 
     public abstract SelectQuery where(String condition);
+    public abstract SelectQuery andWhere(String condition);
+    public abstract SelectQuery orWhere(String condition);
 
     public SelectQuery orderBy(String... columns) {
         return orderBy(List.of(columns));
@@ -25,9 +27,7 @@ public abstract class SelectQuery extends Query {
          StringBuilder raw = head;
 
          if(wherePart.length() != 0) {
-             raw.append("WHERE " + wherePart);
-             raw.setLength(raw.length() - 3);
-             raw.append(" ");
+             raw.append("WHERE " + wherePart + " ");
          }
 
          if(orderPart.length() != 0) {

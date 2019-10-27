@@ -23,7 +23,19 @@ class SQLiteSelectQuery extends SelectQuery {
 
     @Override
     public SelectQuery where(String condition) {
-        wherePart.append(condition + "AND");
+        wherePart.append(condition);
+        return this;
+    }
+
+    @Override
+    public SelectQuery andWhere(String condition) {
+        wherePart.append(" AND " + condition);
+        return this;
+    }
+
+    @Override
+    public SelectQuery orWhere(String condition) {
+        wherePart.append(" OR " + condition);
         return this;
     }
 
