@@ -4,6 +4,10 @@ import mesi.orm.exception.ORMesiQueryException;
 import mesi.orm.query.FluentSelectable;
 import mesi.orm.query.SelectQuery;
 
+/**
+ * base class for
+ * state pattern used for FluentSelectable implementations
+ */
 abstract class FluentSelectableState implements FluentSelectable {
 
     protected final PersistenceManagerImpl pm;

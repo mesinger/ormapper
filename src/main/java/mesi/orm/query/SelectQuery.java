@@ -1,11 +1,13 @@
 package mesi.orm.query;
 
-import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * used for building insert statements
+ */
 public abstract class SelectQuery extends Query {
 
     protected StringBuilder wherePart = new StringBuilder();
@@ -47,6 +49,9 @@ public abstract class SelectQuery extends Query {
          return raw.toString();
     }
 
+    /**
+     * @return class which was passed on a previous from call, or null
+     */
     public Optional<Class> getTargetClass() {
         if(targetClass == null) return Optional.empty();
         else return Optional.of(targetClass);

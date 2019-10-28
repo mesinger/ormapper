@@ -6,12 +6,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * util functionalitiy for persistence
+ */
 public interface PersistentUtil {
 
+    /**
+     * recursively adds all persistent members from current class, and all persistent super classes
+     * @param o analyzed o.getClass()
+     * @return list of reflected fields of all persistent (super) classes
+     */
     static List<Field> getAllPersistentMembers(Object o) {
         return getAllPersistentMembers(o.getClass());
     }
 
+    /**
+     * recursively adds all persistent members from current class, and all persistent super classes
+     * @param cls analyzed class
+     * @return list of reflected fields of all persistent (super) classes
+     */
     static List<Field> getAllPersistentMembers(Class cls) {
         if(cls.getSuperclass() == null || cls.getAnnotation(Persistent.class) == null) return new ArrayList<Field>();
         var fields = new ArrayList<Field>(Arrays.asList(cls.getDeclaredFields()));
@@ -19,10 +32,18 @@ public interface PersistentUtil {
         return fields;
     }
 
+    /**
+     * @param o o.getClass()
+     * @return optional with the found primary field
+     */
     static Optional<Field> getPrimaryField(Object o) {
         return getPrimaryField(o.getClass());
     }
 
+    /**
+     * @param cls class
+     * @return optional with the found primary field
+     */
     static Optional<Field> getPrimaryField(Class cls) {
         return Arrays.stream(cls.getDeclaredFields())
                 .filter(field -> field.getAnnotation(Id.class) != null)

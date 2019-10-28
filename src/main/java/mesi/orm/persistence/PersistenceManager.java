@@ -17,10 +17,19 @@ public interface PersistenceManager extends FluentSelectable {
      */
     void persist(Object o);
 
+    /**
+     * initialize select query with '*'
+     * @return FluentSelectable, this object calls from
+     */
     default FluentSelectable select() {
         return select("*");
     }
 
+    /**
+     * executes the already built select query
+     * parses db resultset to a list of objects
+     * @return list of queried objects from the database
+     */
     List<Object> query();
 
     /***

@@ -76,7 +76,7 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
             final var rs = drs.getResultSet();
 
-            
+
 
         } catch (Exception e) {
             throw new ORMesiQueryException("Error while reading from query result");

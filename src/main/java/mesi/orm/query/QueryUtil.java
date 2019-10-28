@@ -5,6 +5,9 @@ import mesi.orm.persistence.PersistenceManager;
 
 import java.util.Optional;
 
+/**
+ * utility functions for query building
+ */
 public interface QueryUtil {
 
     /**

@@ -22,9 +22,8 @@ interface DatabaseModifier {
 
     /**
      * inserts a new row
-     * of a given list of fields in
-     * a table named tableName
-     * @param query
+     * of a given query
+     * @param query sql query for inserting object
      * @return generated primary key
      */
     long insert(Query query);
