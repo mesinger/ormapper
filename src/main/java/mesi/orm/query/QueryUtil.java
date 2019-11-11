@@ -19,7 +19,7 @@ public interface QueryUtil {
      */
     static QUERYTYPE getTypeOf(Class type) {
 
-        if (Number.class.isAssignableFrom(type)) {
+        if (Number.class.isAssignableFrom(type) || type.equals(int.class) || type.equals(long.class) || type.equals(float.class) || type.equals(double.class)) {
 
             if (type.equals(double.class) || type.equals(Double.class) || type.equals(float.class) || type.equals(Float.class)) {
                 return QUERYTYPE.FLOAT;

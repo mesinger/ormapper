@@ -10,7 +10,7 @@ import java.util.List;
  * hold methods which are used for storing and accessing
  * between objects and databases
  */
-public interface PersistenceManager extends FluentSelectable {
+public interface PersistenceManager {
     /***
      * persists an Persistent entity in the underlying rdbms
      * @param o object to be mapped (has to be annotated with @Persistent)
@@ -18,19 +18,11 @@ public interface PersistenceManager extends FluentSelectable {
     void persist(Object o);
 
     /**
-     * initialize select query with '*'
-     * @return FluentSelectable, this object calls from
+     * first call for fetching data
+     * @param persistentClass
+     * @return this as PersistenceFetcher
      */
-    default FluentSelectable select() {
-        return select("*");
-    }
-
-    /**
-     * executes the already built select query
-     * parses db resultset to a list of objects
-     * @return list of queried objects from the database
-     */
-    List<Object> query();
+    PersistenceFetcher from(Class persistentClass);
 
     /***
      * checks if an object is annotated as Persistent

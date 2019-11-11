@@ -10,8 +10,15 @@ class SQLiteSelectQuery extends SelectQuery {
     SQLiteSelectQuery(String... columns) {
         super(columns);
         head.append("SELECT ");
-        Arrays.stream(columns).forEach(column -> head.append(column + ", "));
-        head.setLength(head.length() - 2);
+
+        if(columns.length == 0) {
+            head.append("*");
+        }
+        else {
+            Arrays.stream(columns).forEach(column -> head.append(column + ", "));
+            head.setLength(head.length() - 2);
+        }
+
         head.append(" ");
     }
 

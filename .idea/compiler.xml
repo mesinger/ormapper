@@ -12,7 +12,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="employees" target="12" />
-      <module name="ormapper" target="12" />
+      <module name="ormapper" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -154,7 +154,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
 
         try {
 
-            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
             rawConnection.setAutoCommit(false);
 
             var stmt = rawConnection.createStatement();

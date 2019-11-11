@@ -1,10 +1,8 @@
 package mesi.orm.persistence;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * util functionalitiy for persistence
@@ -30,6 +28,15 @@ public interface PersistentUtil {
         var fields = new ArrayList<Field>(Arrays.asList(cls.getDeclaredFields()));
         fields.addAll(getAllPersistentMembers(cls.getSuperclass()));
         return fields;
+    }
+
+    /**
+     * recursively adds all persistent members from current class, and all persistent super classes
+     * @param cls analyzed class
+     * @return list of all persistent member names
+     */
+    static Map<String, Class> getAllPersistentMemberNames(Class cls) {
+        return getAllPersistentMembers(cls).stream().collect(Collectors.toMap(Field::getName, Field::getType));
     }
 
     /**

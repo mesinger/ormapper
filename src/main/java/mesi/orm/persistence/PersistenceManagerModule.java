@@ -38,5 +38,10 @@ abstract class PersistenceManagerModule {
         QueryBuilder provideQueryBuilder() {
             return QueryBuilderFactory.create(RDBMS.SQLITE);
         }
+
+        @Provides
+        ResultSetParser provideResultSetParser() {
+            return ResultSetParserFactory.create(RDBMS.SQLITE);
+        }
     }
 }

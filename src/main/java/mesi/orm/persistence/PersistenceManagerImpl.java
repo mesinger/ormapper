@@ -6,16 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mesi.orm.conn.DatabaseConnection;
-import mesi.orm.conn.DisposeableResultSet;
+import mesi.orm.exception.ORMesiFetchException;
 import mesi.orm.exception.ORMesiPersistenceException;
 import mesi.orm.exception.ORMesiQueryException;
-import mesi.orm.query.FluentSelectable;
 import mesi.orm.query.QueryBuilder;
-import mesi.orm.query.SelectQuery;
 
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /***
@@ -23,21 +20,23 @@ import java.util.stream.Collectors;
  * NoArgsConstructor only used for unit testing
  */
 @NoArgsConstructor
-final class PersistenceManagerImpl implements PersistenceManager {
+final class PersistenceManagerImpl implements PersistenceManager, PersistenceFetcher {
 
     private DatabaseConnection databaseConnection;
     @Getter(AccessLevel.PACKAGE)
     private QueryBuilder queryBuilder;
     @Setter(AccessLevel.PACKAGE)
-    private FluentSelectableState selectableState = new FluentSelectableInitialState(this);
+    private PersistenceFetcherState fetchState = new PersistenceFetcherInitialState(this);
+    private ResultSetParser resultSetParser;
 
     @Inject
-    PersistenceManagerImpl(DatabaseConnection connection, QueryBuilder queryBuilder) {
+    PersistenceManagerImpl(DatabaseConnection connection, QueryBuilder queryBuilder, ResultSetParser resultSetParser) {
 
         databaseConnection = connection;
         databaseConnection.open();
 
         this.queryBuilder = queryBuilder;
+        this.resultSetParser = resultSetParser;
     }
 
     @Override
@@ -63,10 +62,18 @@ final class PersistenceManagerImpl implements PersistenceManager {
     }
 
     @Override
-    public List<Object> query() {
+    public PersistenceFetcher from(Class persistentClass) {
+        fetchState = new PersistenceFetcherInitialState(this);
+        fetchState.from(persistentClass);
+        return this;
+    }
 
-        final var query = selectableState.query;
-        final var targetClass = query.getTargetClass().orElseThrow(() -> new ORMesiQueryException("Missing target class"));
+    @Override
+    public List<Object> fetch() {
+
+        final var query = fetchState.query;
+        final var targetClass = query.getTargetClass().orElseThrow(() -> new ORMesiFetchException("Missing target class"));
+        var persistentObjects = new ArrayList<Object>();
 
         if(query == null) {
             throw new ORMesiQueryException("Invalid query statement");
@@ -76,13 +83,27 @@ final class PersistenceManagerImpl implements PersistenceManager {
 
             final var rs = drs.getResultSet();
 
+            final var memberNamesAndClasses = PersistentUtil.getAllPersistentMemberNames(targetClass);
 
+            while(rs.next()) {
+
+                var persistentObject = targetClass.getConstructor().newInstance();
+
+                for(Map.Entry<String, Class> entry : memberNamesAndClasses.entrySet()) {
+                    var member = targetClass.getDeclaredField(entry.getKey());
+                    member.setAccessible(true);
+                    member.set(persistentObject, resultSetParser.parseObjectFromResultSet(entry.getKey(), rs, entry.getValue()));
+                }
+
+                persistentObjects.add(persistentObject);
+            }
 
         } catch (Exception e) {
-            throw new ORMesiQueryException("Error while reading from query result");
+            e.printStackTrace();
+            throw new ORMesiFetchException("Error while reading from query result");
         }
 
-        return null;
+        return persistentObjects;
     }
 
     /**
@@ -112,7 +133,7 @@ final class PersistenceManagerImpl implements PersistenceManager {
             fields.add(primaryField);
 
             fields.stream().forEach(
-                    field -> query.addColumn(field, o.getClass())
+                    field -> query.addColumn(field, field.getType())
             );
 
             databaseConnection.createTable(query);
@@ -160,38 +181,20 @@ final class PersistenceManagerImpl implements PersistenceManager {
     }
 
     @Override
-    public FluentSelectable select(String... columns) {
-        selectableState.select(columns);
+    public PersistenceFetcher where(String condition) {
+        fetchState.where(condition);
         return this;
     }
 
     @Override
-    public FluentSelectable from(Class persistentClass) {
-        selectableState.from(persistentClass);
+    public PersistenceFetcher andWhere(String condition) {
+        fetchState.andWhere(condition);
         return this;
     }
 
     @Override
-    public FluentSelectable where(String condition) {
-        selectableState.where(condition);
-        return this;
-    }
-
-    @Override
-    public FluentSelectable andWhere(String condition) {
-        selectableState.andWhere(condition);
-        return this;
-    }
-
-    @Override
-    public FluentSelectable orWhere(String condition) {
-        selectableState.orWhere(condition);
-        return this;
-    }
-
-    @Override
-    public FluentSelectable orderBy(String... columns) {
-        selectableState.orderBy(columns);
+    public PersistenceFetcher orWhere(String condition) {
+        fetchState.orWhere(condition);
         return this;
     }
 }
