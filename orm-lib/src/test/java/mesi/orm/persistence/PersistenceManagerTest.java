@@ -28,17 +28,17 @@ public class PersistenceManagerTest {
 
     @Test
     public void testisObjectPersistent() {
-        assertTrue(PersistenceManager.isObjectPersistent(persistentObject));
-        assertTrue(PersistenceManager.isObjectPersistent(persistentObjectWithId));
-        assertTrue(PersistenceManager.isObjectPersistent(persistentObjectWithId2));
-        assertFalse(PersistenceManager.isObjectPersistent(notPersistentObject));
+        assertTrue(PersistentUtil.isObjectPersistent(persistentObject));
+        assertTrue(PersistentUtil.isObjectPersistent(persistentObjectWithId));
+        assertTrue(PersistentUtil.isObjectPersistent(persistentObjectWithId2));
+        assertFalse(PersistentUtil.isObjectPersistent(notPersistentObject));
     }
 
     @Test
     public void hasPersistentObjectIdentification() {
-        assertFalse(PersistenceManager.hasPersistentObjectIdentification(persistentObject));
-        assertTrue(PersistenceManager.hasPersistentObjectIdentification(persistentObjectWithId));
-        assertTrue(PersistenceManager.hasPersistentObjectIdentification(persistentObjectWithId2));
+        assertFalse(PersistentUtil.hasPersistentObjectIdentification(persistentObject));
+        assertTrue(PersistentUtil.hasPersistentObjectIdentification(persistentObjectWithId));
+        assertTrue(PersistentUtil.hasPersistentObjectIdentification(persistentObjectWithId2));
     }
 }
 

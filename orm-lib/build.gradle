@@ -5,4 +5,5 @@ plugins {
 dependencies {
     compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
 }
