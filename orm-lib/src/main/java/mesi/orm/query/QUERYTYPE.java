@@ -8,5 +8,6 @@ public enum QUERYTYPE {
     INTEGER,
     FLOAT,
     BOOL,
-    TEXT
+    TEXT,
+    DATE
 }

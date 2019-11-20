@@ -9,6 +9,34 @@ import java.util.stream.Collectors;
  */
 public interface PersistentUtil {
 
+    /***
+     * checks if an object is annotated as Persistent
+     * @param o object
+     * @return true, if object is annotated with @Persistent, false otherwise
+     */
+    static boolean isObjectPersistent(Object o) {
+        return isObjectPersistent(o.getClass());
+    }
+    static boolean isObjectPersistent(Class clazz) {
+        return clazz.getAnnotation(Persistent.class) != null;
+    }
+
+    /***
+     * checks if persistent object has exactly one member tagged as id
+     * @param o persistent object
+     * @return true, if object has exactly one member tagged as @Id, false otherwise
+     */
+    static boolean hasPersistentObjectIdentification(Object o) {
+
+        for(Field field : o.getClass().getDeclaredFields()) {
+            if(field.getDeclaredAnnotation(Id.class) != null) {
+                return field.getType().equals(Long.class) || field.getType().equals(long.class);
+            }
+        }
+
+        return false;
+    }
+
     /**
      * recursively adds all persistent members from current class, and all persistent super classes
      * @param o analyzed o.getClass()
@@ -25,17 +53,17 @@ public interface PersistentUtil {
      */
     static List<Field> getAllPersistentMembers(Class cls) {
         if(cls.getSuperclass() == null || cls.getAnnotation(Persistent.class) == null) return new ArrayList<Field>();
-        var fields = new ArrayList<Field>(Arrays.asList(cls.getDeclaredFields()));
+        var fields = new ArrayList<Field>(Arrays.asList(cls.getDeclaredFields())).stream().filter(field -> field.getAnnotation(Transient.class) == null).collect(Collectors.toList());
         fields.addAll(getAllPersistentMembers(cls.getSuperclass()));
         return fields;
     }
 
     /**
-     * recursively adds all persistent members from current class, and all persistent super classes
+     * recursively adds all persistent members name and their class from current class, and all persistent super classes
      * @param cls analyzed class
-     * @return list of all persistent member names
+     * @return list of all persistent member names and their class
      */
-    static Map<String, Class> getAllPersistentMemberNames(Class cls) {
+    static Map<String, Class> getAllPersistentMemberNamesAndClass(Class cls) {
         return getAllPersistentMembers(cls).stream().collect(Collectors.toMap(Field::getName, Field::getType));
     }
 

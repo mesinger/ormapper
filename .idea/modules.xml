@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../employees/employees.iml" filepath="$PROJECT_DIR$/../employees/employees.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ormapper.iml" filepath="$PROJECT_DIR$/ormapper.iml" />
-    </modules>
-  </component>
-</project>

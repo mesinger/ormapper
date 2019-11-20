@@ -1,0 +1,12 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    compile project(':orm-lib')
+}
+
+application {
+    mainClassName = 'mesi.employee.App'
+}

@@ -1,9 +1,6 @@
 package mesi.orm.query;
 
-import mesi.orm.persistence.Foreign;
-import mesi.orm.persistence.Id;
-import mesi.orm.persistence.Nullable;
-import mesi.orm.persistence.PersistentUtil;
+import mesi.orm.persistence.*;
 
 import java.lang.reflect.Field;
 
@@ -30,7 +27,8 @@ public abstract class CreateQuery extends Query{
 
         final var name = reflectedField.getName();
         final var isPrimary = reflectedField.getAnnotation(Id.class) != null;
-        final var dataType = (isPrimary ? QUERYTYPE.PRIMARY : QueryUtil.getTypeOf(cls));
+        var isEnum = reflectedField.getAnnotation(Transient.class) != null;
+        final var dataType = (isPrimary ? QUERYTYPE.PRIMARY : (isEnum ? QUERYTYPE.TEXT : QueryUtil.getTypeOf(cls)));
         final var isNullable = reflectedField.getAnnotation(Nullable.class) != null;
         final var isForeign = reflectedField.getAnnotation(Foreign.class) != null;
 

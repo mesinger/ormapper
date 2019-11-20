@@ -1,0 +1,25 @@
+allprojects {
+    group = 'mesi.orm'
+    version = '1.0.0'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.5.2'
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.5.2'
+        testCompile group: 'org.mockito', name: 'mockito-core', version: '3.1.0'
+        testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.1.0'
+    }
+
+    compileJava {
+        sourceCompatibility = '11'
+        targetCompatibility = '11'
+    }
+}

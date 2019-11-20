@@ -83,7 +83,7 @@ final class PersistenceManagerImpl implements PersistenceManager, PersistenceFet
 
             final var rs = drs.getResultSet();
 
-            final var memberNamesAndClasses = PersistentUtil.getAllPersistentMemberNames(targetClass);
+            final var memberNamesAndClasses = PersistentUtil.getAllPersistentMemberNamesAndClass(targetClass);
 
             while(rs.next()) {
 
@@ -92,7 +92,10 @@ final class PersistenceManagerImpl implements PersistenceManager, PersistenceFet
                 for(Map.Entry<String, Class> entry : memberNamesAndClasses.entrySet()) {
                     var member = targetClass.getDeclaredField(entry.getKey());
                     member.setAccessible(true);
-                    member.set(persistentObject, resultSetParser.parseObjectFromResultSet(entry.getKey(), rs, entry.getValue()));
+
+                    if(member.getAnnotation(Enum.class) == null) {
+                        member.set(persistentObject, resultSetParser.parseObjectFromResultSet(entry.getKey(), rs, entry.getValue()));
+                    }
                 }
 
                 persistentObjects.add(persistentObject);
@@ -111,11 +114,11 @@ final class PersistenceManagerImpl implements PersistenceManager, PersistenceFet
      * @param o
      */
     private void checkPersistenceValidityOfObject(Object o) {
-        if(!PersistenceManager.isObjectPersistent(o)) {
+        if(!PersistentUtil.isObjectPersistent(o)) {
             throw new ORMesiPersistenceException("Object of type " + o.getClass().getName() + " misses the " + Persistent.class.getName() + " annotation");
         }
 
-        if(!PersistenceManager.hasPersistentObjectIdentification(o)) {
+        if(!PersistentUtil.hasPersistentObjectIdentification(o)) {
             throw new ORMesiPersistenceException("Persistent objects need exactly one member of type Long (or long) annotated with " + Id.class.getName());
         }
     }

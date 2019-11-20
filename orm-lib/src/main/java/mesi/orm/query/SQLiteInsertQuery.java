@@ -1,6 +1,7 @@
 package mesi.orm.query;
 
 import mesi.orm.exception.ORMesiPersistenceException;
+import mesi.orm.persistence.Enum;
 import mesi.orm.persistence.Foreign;
 import mesi.orm.persistence.Id;
 import mesi.orm.persistence.Nullable;
@@ -33,9 +34,10 @@ class SQLiteInsertQuery extends InsertQuery {
 
                         field.setAccessible(true);
                         boolean isString = field.get(persistentObject).getClass().equals(String.class);
+                        boolean isEnum = field.getAnnotation(Enum.class) != null;
 
                         String name = field.getName();
-                        Object value = isString ? "'" + field.get(persistentObject) + "'" : field.get(persistentObject);
+                        Object value = isString || isEnum ? "'" + field.get(persistentObject) + "'" : field.get(persistentObject);
 
                         if(field.getAnnotation(Foreign.class) != null) {
                             name = "fk_" + field.getName();

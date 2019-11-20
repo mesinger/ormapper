@@ -26,7 +26,7 @@ class SQLiteResultSetParser implements ResultSetParser{
             return rs.getString(name);
         }
         else {
-            if(PersistenceManager.isObjectPersistent(cls)) {
+            if(PersistentUtil.isObjectPersistent(cls)) {
                 return null;
             }
             else {

@@ -35,6 +35,7 @@ class SQLiteCreateQuery extends CreateQuery {
             case FLOAT:
                 return "DOUBLE";
             case TEXT:
+            case DATE:
                 return "TEXT";
             default:
                 throw new RuntimeException("invalid querytype");
