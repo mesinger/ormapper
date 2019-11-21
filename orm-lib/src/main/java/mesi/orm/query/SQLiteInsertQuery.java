@@ -1,84 +1,60 @@
 package mesi.orm.query;
 
+import mesi.orm.persistence.transform.PersistentObject;
+import mesi.orm.persistence.transform.PersistentProperty;
+import mesi.orm.persistence.transform.PersistentPropertyType;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 class SQLiteInsertQuery extends InsertQuery {
 
-    protected SQLiteInsertQuery(Class persistentClass, Object persistentObject) {
-        super(persistentClass, persistentObject);
+    protected SQLiteInsertQuery(PersistentObject persistentObject) {
+        super(persistentObject);
+
+        head.append("INSERT INTO " + persistentObject.getTableName() + " (");
+
+        persistentObject.getProperties().stream()
+                .map(property -> property.getName())
+                .forEach(name -> head.append(name + ", "));
+
+        head.setLength(head.length() - 2);
+        head.append(") ");
+
+        tail.append("VALUES (");
+
+        persistentObject.getProperties().stream()
+                .map(this::mapValue)
+                .map(property -> property.getValue())
+                .forEach(value -> tail.append(value + ", "));
+
+        tail.setLength(tail.length() - 2);
+        tail.append(");");
+    }
+
+    private PersistentProperty mapValue(PersistentProperty property) {
+
+        if(property.getType().equals(PersistentPropertyType.STRING)) {
+            property.setValue("'" + property.getValue() + "'");
+        }
+        else if(property.getType().equals(PersistentPropertyType.TIME)) {
+            var modifiedProperty = (LocalTime) property.getValue();
+            var formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+        }
+        else if(property.getType().equals(PersistentPropertyType.DATE)) {
+            var modifiedProperty = (LocalDate) property.getValue();
+            var formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD");
+            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+        }
+        else if(property.getType().equals(PersistentPropertyType.DATETIME)) {
+            var modifiedProperty = (LocalDateTime) property.getValue();
+            var formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss");
+            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+        }
+
+        return property;
     }
 }
-
-//import mesi.orm.exception.ORMesiPersistenceException;
-//import mesi.orm.persistence.Enum;
-//import mesi.orm.persistence.Foreign;
-//import mesi.orm.persistence.Id;
-//import mesi.orm.persistence.Nullable;
-//import mesi.orm.persistence.PersistentUtil;
-//
-//import java.util.stream.Collectors;
-//
-//class SQLiteInsertQuery extends InsertQuery {
-//
-//    SQLiteInsertQuery(Class persistentClass, Object persistentObject) {
-//        super(persistentClass, persistentObject);
-//
-//        head.append("INSERT INTO " + PersistentUtil.getPersistenceObjectsTableName(persistentClass) + " (");
-//
-//        final var columnsAndValues = PersistentUtil.getAllPersistentMembers(persistentClass).stream()
-//                .filter(field -> field.getAnnotation(Id.class) == null)
-//                .filter(field -> {
-//                    field.setAccessible(true);
-//                    try {
-//                        if(field.getAnnotation(Nullable.class) != null && field.get(persistentObject) == null) return false;
-//                        else if(field.getAnnotation(Nullable.class) == null && field.get(persistentObject) == null) throw new ORMesiPersistenceException("field " + field.getName() + " in class " + persistentClass.getName() + " is null, but not annotated with " + Nullable.class.getName());
-//                        else return true;
-//                    }
-//                    catch (IllegalAccessException ex) {
-//                        throw new ORMesiPersistenceException(ex.getMessage());
-//                    }
-//                })
-//                .map(field -> {
-//                    try {
-//
-//                        field.setAccessible(true);
-//                        boolean isString = field.get(persistentObject).getClass().equals(String.class);
-//                        boolean isEnum = field.getAnnotation(Enum.class) != null;
-//
-//                        String name = field.getName();
-//                        Object value = isString || isEnum ? "'" + field.get(persistentObject) + "'" : field.get(persistentObject);
-//
-//                        if(field.getAnnotation(Foreign.class) != null) {
-//                            name = "fk_" + field.getName();
-//                            final var idField = value.getClass().getDeclaredField("id");
-//                            idField.setAccessible(true);
-//                            value = idField.get(value);
-//                        }
-//
-//                        return new Irgendwas(name, value);
-//
-//                    }
-//                    catch (Exception ex) {
-//                        throw new ORMesiPersistenceException("cannot insert element of type " + persistentClass.getName() + " because of " + ex.getMessage());
-//                    }
-//                })
-//                .collect(Collectors.toList());
-//
-//        columnsAndValues.stream().forEach(column -> head.append(column.name + ", "));
-//        head.setLength(head.length() - 2);
-//        head.append(") ");
-//
-//        tail.append("VALUES (");
-//        columnsAndValues.stream().forEach(value -> tail.append(value.value + ", "));
-//        tail.setLength(tail.length() - 2);
-//        tail.append(");");
-//    }
-//
-//    private class Irgendwas {
-//        public final String name;
-//        public final Object value;
-//
-//        public Irgendwas(String name, Object value) {
-//            this.name = name;
-//            this.value = value;
-//        }
-//    }
-//}

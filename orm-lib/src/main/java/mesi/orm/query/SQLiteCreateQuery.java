@@ -12,13 +12,13 @@ class SQLiteCreateQuery extends CreateQuery {
     }
 
     @Override
-    protected CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef) {
+    protected CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isForeign, String foreignTable, String foreignRef) {
 
         head.append((isForeign) ? "fk_" : "");
         head.append(name + " ");
         head.append(translateQueryType(dataType) + " ");
         head.append((isPrimary ? "PRIMARY KEY AUTOINCREMENT " : ""));
-        head.append(((!isNullable && !isPrimary) ? "NOT NULL " : ""));
+        head.append("NOT NULL ");
         head.setLength(head.length() - 1);
         head.append(",\n");
 

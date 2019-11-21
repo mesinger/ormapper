@@ -1,6 +1,6 @@
 package mesi.orm.util
 
-import mesi.orm.persistence.Persistent
+import mesi.orm.persistence.annotations.Persistent
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation

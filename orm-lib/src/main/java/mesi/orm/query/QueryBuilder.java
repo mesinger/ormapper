@@ -1,5 +1,7 @@
 package mesi.orm.query;
 
+import mesi.orm.persistence.transform.PersistentObject;
+
 /**
  * entry point for building mesi.orm.query.Query objects
  */
@@ -18,9 +20,8 @@ public interface QueryBuilder {
     SelectQuery select(String... columns);
 
     /**
-     * @param persistentClass
      * @param persistentObject
      * @return insert query
      */
-    InsertQuery insert(Class persistentClass, Object persistentObject);
+    InsertQuery insert(PersistentObject persistentObject);
 }

@@ -12,7 +12,7 @@ public abstract class CreateQuery extends Query{
 
     }
 
-    protected abstract CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef);
+    protected abstract CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isForeign, String foreignTable, String foreignRef);
 
     /**
      * adds a new column to the create table statement
@@ -25,7 +25,6 @@ public abstract class CreateQuery extends Query{
                 property.getName(),
                 property.getType(),
                 property.isPrimary(),
-                property.isNullable(),
                 property.isForeign(),
                 property.getForeignTable(),
                 property.getForeignRef()

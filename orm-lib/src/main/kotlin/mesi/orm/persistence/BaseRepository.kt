@@ -27,7 +27,8 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
             database.createTable(createQuery)
         }
 
-
+        val insertQuery = queryBuilder.insert(persistentObject)
+        database.insert(insertQuery)
     }
 
     override fun update(entity: ENTITY) {

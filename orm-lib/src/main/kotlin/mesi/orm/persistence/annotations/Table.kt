@@ -1,4 +1,4 @@
-package mesi.orm.persistence
+package mesi.orm.persistence.annotations
 
 /**
  * sets the table name of a persistent class

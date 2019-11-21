@@ -1,12 +1,14 @@
 package mesi.orm.util
 
 import mesi.orm.exception.ORMesiException
-import mesi.orm.persistence.Nullable
-import mesi.orm.persistence.Primary
-import mesi.orm.persistence.Table
+import mesi.orm.persistence.annotations.PersistenceTransient
+import mesi.orm.persistence.annotations.PersistentEnum
+import mesi.orm.persistence.annotations.Primary
+import mesi.orm.persistence.annotations.Table
 import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.persistence.transform.PersistentPropertyType
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -27,7 +29,7 @@ object Persistence {
             val type = getPrimaryKeyType(it)
             val value = it.get(instance)
 
-            return PersistentProperty(name, type, value, isPrimary = true, isNullable = false, isForeign = false, foreignTable = "", foreignRef = "")
+            return PersistentProperty(name, type, value, isPrimary = true, isForeign = false)
         }
 
         throw ORMesiException("No primary key for class ${clazz.simpleName}")
@@ -45,22 +47,39 @@ object Persistence {
         }
     }
 
-    fun getOther(instance: Any) : List<PersistentProperty> {
+    fun getEnums(instance : Any) : List<PersistentProperty> {
 
         val clazz : KClass<Any> = instance::class as KClass<Any>
+        val properties = mutableListOf<PersistentProperty>()
 
+        Reflected.getAllPropertiesRecursive(clazz)
+                .filter { prop -> prop.findAnnotation<PersistentEnum>() != null }
+                .forEach { prop ->
+                    val name = prop.name
+                    val type = PersistentPropertyType.STRING
+                    val value = prop.get(instance).toString()
+
+                    properties.add(PersistentProperty(name, type, value, isPrimary = false, isForeign = false))
+                }
+
+        return properties
+    }
+
+    fun getOthers(instance: Any) : List<PersistentProperty> {
+
+        val clazz : KClass<Any> = instance::class as KClass<Any>
         val properties = mutableListOf<PersistentProperty>()
 
         Reflected.getAllPropertiesRecursive(clazz)
                 .filter { prop -> prop.findAnnotation<Primary>() == null  }
-                .filter { prop -> prop.findAnnotation<Transient>() == null  }
+                .filter { prop -> prop.findAnnotation<PersistentEnum>() == null  }
+                .filter { prop -> prop.findAnnotation<PersistenceTransient>() == null  }
                 .forEach { prop ->
                     val name = prop.name
                     val type = getPropertyType(prop)
                     val value = prop.get(instance)
-                    val isNullable = prop.findAnnotation<Nullable>() != null
 
-                    properties.add(PersistentProperty(name, type, value, isPrimary = false, isNullable = isNullable, isForeign = false, foreignTable = "", foreignRef = ""))
+                    properties.add(PersistentProperty(name, type, value, isPrimary = false, isForeign = false))
                 }
 
         return properties
@@ -74,6 +93,7 @@ object Persistence {
             prop.returnType.isSubtypeOf(Boolean::class.createType()) -> PersistentPropertyType.BOOL
             prop.returnType.isSubtypeOf(LocalTime::class.createType()) -> PersistentPropertyType.TIME
             prop.returnType.isSubtypeOf(LocalDate::class.createType()) -> PersistentPropertyType.DATE
+            prop.returnType.isSubtypeOf(LocalDateTime::class.createType()) -> PersistentPropertyType.DATETIME
             else -> throw ORMesiException("Unsupported type found")
         }
     }

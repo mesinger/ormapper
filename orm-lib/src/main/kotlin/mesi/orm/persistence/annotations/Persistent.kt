@@ -1,4 +1,4 @@
-package mesi.orm.persistence
+package mesi.orm.persistence.annotations
 
 /**
  * decorative annotation for persistent entities

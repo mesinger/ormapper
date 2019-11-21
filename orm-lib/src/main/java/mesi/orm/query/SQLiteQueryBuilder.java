@@ -1,5 +1,7 @@
 package mesi.orm.query;
 
+import mesi.orm.persistence.transform.PersistentObject;
+
 class SQLiteQueryBuilder implements QueryBuilder {
 
     SQLiteQueryBuilder() {}
@@ -15,7 +17,7 @@ class SQLiteQueryBuilder implements QueryBuilder {
     }
 
     @Override
-    public InsertQuery insert(Class persistentClass, Object persistentObject) {
-        return new SQLiteInsertQuery(persistentClass, persistentObject);
+    public InsertQuery insert(PersistentObject persistentObject) {
+        return new SQLiteInsertQuery(persistentObject);
     }
 }

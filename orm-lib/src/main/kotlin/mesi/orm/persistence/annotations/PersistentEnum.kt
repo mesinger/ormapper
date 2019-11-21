@@ -1,8 +1,9 @@
-package mesi.orm.persistence
+package mesi.orm.persistence.annotations
 
 /**
- * decorative annotation for persistent class properties, which can be null
+ * identifies an enum
+ * in an persistent class
  */
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Nullable
+annotation class PersistentEnum
