@@ -1,7 +1,6 @@
 package mesi.orm.conn;
 
-import mesi.orm.exception.ORMesiConnectionException;
-import mesi.orm.exception.ORMesiSqlException;
+import mesi.orm.exception.ORMesiException;
 import mesi.orm.query.Query;
 
 import java.sql.Connection;
@@ -39,9 +38,9 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             return true;
 
         } catch (ClassNotFoundException e) {
-            throw new ORMesiConnectionException("Missing driver for " + DRIVER_CLASS_NAME);
+            throw new ORMesiException("Missing driver for " + DRIVER_CLASS_NAME);
         } catch (SQLException e) {
-            throw new ORMesiConnectionException("Error while connecting to database.\n" + e.getMessage());
+            throw new ORMesiException("Error while connecting to database.\n" + e.getMessage());
         }
     }
 
@@ -57,7 +56,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             return true;
 
         } catch (SQLException e) {
-            throw new ORMesiConnectionException("Error while closing connection to database.\n" + e.getMessage());
+            throw new ORMesiException("Error while closing connection to database.\n" + e.getMessage());
         }
     }
 
@@ -80,7 +79,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             stmt.close();
 
         } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+            throw new ORMesiException("error while processing query " + e.getMessage());
         }
     }
 
@@ -109,7 +108,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             return tableExists;
 
         } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+            throw new ORMesiException("error while processing query " + e.getMessage());
         }
     }
 
@@ -140,12 +139,12 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
                 rawConnection.setAutoCommit(true);
                 stmt.close();
 
-                throw new ORMesiSqlException("cannot retrieve generated id while inserting persistent object");
+                throw new ORMesiException("cannot retrieve generated id while inserting persistent object");
             }
 
 
         } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+            throw new ORMesiException("error while processing query " + e.getMessage());
         }
     }
 
@@ -165,7 +164,7 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
             return new DisposeableResultSet(resultSet, stmt);
 
         } catch (SQLException e) {
-            throw new ORMesiSqlException("error while processing query " + e.getMessage());
+            throw new ORMesiException("error while processing query " + e.getMessage());
         }
     }
 

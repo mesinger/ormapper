@@ -1,5 +1,8 @@
 package mesi.orm.query;
 
+import mesi.orm.exception.ORMesiException;
+import mesi.orm.persistence.transform.PersistentPropertyType;
+
 class SQLiteCreateQuery extends CreateQuery {
 
     protected SQLiteCreateQuery(String tableName) {
@@ -9,7 +12,7 @@ class SQLiteCreateQuery extends CreateQuery {
     }
 
     @Override
-    protected CreateQuery addColumn(String name, QUERYTYPE dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef) {
+    protected CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isNullable, boolean isForeign, String foreignTable, String foreignRef) {
 
         head.append((isForeign) ? "fk_" : "");
         head.append(name + " ");
@@ -26,19 +29,20 @@ class SQLiteCreateQuery extends CreateQuery {
         return this;
     }
 
-    private String translateQueryType(QUERYTYPE dataType) {
+    private String translateQueryType(PersistentPropertyType dataType) {
         switch (dataType) {
-            case PRIMARY:
-            case INTEGER:
             case BOOL:
+            case LONG:
                 return "INTEGER";
-            case FLOAT:
+            case DOUBLE:
                 return "DOUBLE";
-            case TEXT:
+            case STRING:
+            case TIME:
             case DATE:
+            case DATETIME:
                 return "TEXT";
             default:
-                throw new RuntimeException("invalid querytype");
+                throw new ORMesiException("unsupported type");
         }
     }
 }

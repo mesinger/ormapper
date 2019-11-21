@@ -1,7 +1,5 @@
 package mesi.orm.query;
 
-import mesi.orm.persistence.PersistentUtil;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +22,7 @@ class SQLiteSelectQuery extends SelectQuery {
 
     @Override
     public SelectQuery from(Class persistentClass) {
-        head.append("FROM " + PersistentUtil.getPersistenceObjectsTableName(persistentClass) + " ");
+//        head.append("FROM " + Persistence.INSTANCE.getTableName(persistentClass) + " ");
         return this;
     }
 

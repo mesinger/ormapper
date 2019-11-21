@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
     compile project(':orm-lib')
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 }
 
 application {
-    mainClassName = 'mesi.employee.App'
+    mainClassName = 'mesi.employee.AppKt'
 }
