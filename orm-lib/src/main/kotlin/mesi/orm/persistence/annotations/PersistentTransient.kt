@@ -5,4 +5,4 @@ package mesi.orm.persistence.annotations
  */
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class PersistenceTransient
+annotation class PersistentTransient

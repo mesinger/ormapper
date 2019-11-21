@@ -1,10 +1,7 @@
 package mesi.orm.util
 
 import mesi.orm.exception.ORMesiException
-import mesi.orm.persistence.annotations.PersistenceTransient
-import mesi.orm.persistence.annotations.PersistentEnum
-import mesi.orm.persistence.annotations.Primary
-import mesi.orm.persistence.annotations.Table
+import mesi.orm.persistence.annotations.*
 import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.persistence.transform.PersistentPropertyType
 import java.time.LocalDate
@@ -23,7 +20,7 @@ object Persistence {
      */
     fun getPrimaryKey(instance : Any) : PersistentProperty {
         val clazz : KClass<Any> = instance::class as KClass<Any>
-        Reflected.getAllProperties(clazz).filter { prop -> prop.findAnnotation<Primary>() != null }.firstOrNull()?.let {
+        Reflected.getAllProperties(clazz).find { prop -> prop.findAnnotation<Primary>() != null }?.let {
 
             val name = it.name
             val type = getPrimaryKeyType(it)
@@ -32,7 +29,7 @@ object Persistence {
             return PersistentProperty(name, type, value, isPrimary = true, isForeign = false)
         }
 
-        throw ORMesiException("No primary key for class ${clazz.simpleName}")
+        throw ORMesiException("\nNo primary key for class ${clazz.simpleName}")
     }
 
     /**
@@ -43,7 +40,7 @@ object Persistence {
         return when {
             prop.returnType.isSubtypeOf(Long::class.createType()) -> PersistentPropertyType.LONG
             prop.returnType.isSubtypeOf(String::class.createType()) -> PersistentPropertyType.STRING
-            else -> throw ORMesiException("Invalid type for primary key\nOnly use kotlin.Long, or kotlin.String as primary keys")
+            else -> throw ORMesiException("\nInvalid type for primary key\nOnly use kotlin.Long, or kotlin.String as primary keys")
         }
     }
 
@@ -73,7 +70,7 @@ object Persistence {
         Reflected.getAllPropertiesRecursive(clazz)
                 .filter { prop -> prop.findAnnotation<Primary>() == null  }
                 .filter { prop -> prop.findAnnotation<PersistentEnum>() == null  }
-                .filter { prop -> prop.findAnnotation<PersistenceTransient>() == null  }
+                .filter { prop -> prop.findAnnotation<PersistentTransient>() == null  }
                 .forEach { prop ->
                     val name = prop.name
                     val type = getPropertyType(prop)
@@ -109,5 +106,26 @@ object Persistence {
         tableAnnotation?.
                 let { return tableAnnotation.tableName }
                 ?: kotlin.run { return clazz.simpleName + "s" }
+    }
+
+    fun getTableName(clazz : Class<*>) : String {
+
+        val tableAnnotation = clazz.getAnnotation(Table::class.java)
+
+        tableAnnotation?.
+                let { return tableAnnotation.tableName }
+                ?: kotlin.run { return clazz.simpleName + "s" }
+    }
+
+    fun isAnnotatedWithPersistent(clazz: KClass<*>) : Boolean {
+        return clazz.findAnnotation<Persistent>() != null
+    }
+
+    fun hasValidPrimaryProperty(instance: Any) : Boolean {
+        return getPrimaryKey(instance) != null
+    }
+
+    fun getNameOfPrimaryKey(instance: Any) : String {
+        return getPrimaryKey(instance).name
     }
 }

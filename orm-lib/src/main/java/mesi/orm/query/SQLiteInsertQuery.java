@@ -41,18 +41,16 @@ class SQLiteInsertQuery extends InsertQuery {
         }
         else if(property.getType().equals(PersistentPropertyType.TIME)) {
             var modifiedProperty = (LocalTime) property.getValue();
-            var formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+            property.setValue("'" + modifiedProperty.format(DateTimeFormatter.ISO_LOCAL_TIME) + "'");
         }
         else if(property.getType().equals(PersistentPropertyType.DATE)) {
             var modifiedProperty = (LocalDate) property.getValue();
-            var formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD");
-            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+            property.setValue("'" + modifiedProperty.format(DateTimeFormatter.ISO_LOCAL_DATE) + "'");
         }
         else if(property.getType().equals(PersistentPropertyType.DATETIME)) {
             var modifiedProperty = (LocalDateTime) property.getValue();
             var formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss");
-            property.setValue("'" + modifiedProperty.format(formatter) + "'");
+            property.setValue("'" + modifiedProperty.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "'");
         }
 
         return property;

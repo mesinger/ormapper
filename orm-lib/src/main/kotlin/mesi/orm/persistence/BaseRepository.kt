@@ -3,15 +3,24 @@ package mesi.orm.persistence
 import mesi.orm.conn.DatabaseConnection
 import mesi.orm.conn.DatabaseConnectionFactory
 import mesi.orm.conn.DatabaseSystem
+import mesi.orm.exception.ORMesiException
+import mesi.orm.persistence.annotations.Persistent
+import mesi.orm.persistence.annotations.Primary
+import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
 import mesi.orm.query.QueryBuilder
 import mesi.orm.query.QueryBuilderFactory
+import mesi.orm.util.Persistence
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.memberProperties
 
 /**
  * base respository, which has to be extended by the
  * user with needed primary and entity types
  */
-class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder) : Repository<PRIMARY, ENTITY> {
+class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder, private val resultParser : ResultSetParser, private val entityClass : KClass<ENTITY>) : Repository<PRIMARY, ENTITY> {
 
     init {
         database.open()
@@ -35,10 +44,60 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
 
     }
 
+    override fun get(id: PRIMARY): ENTITY? {
+        val instance = entityClass.createInstance()
+        val primaryName = Persistence.getNameOfPrimaryKey(instance)
+        val persistentObject = PersistentObject.from(instance)
+
+        val query = queryBuilder.select().from(entityClass.java).where("$primaryName=$id")
+
+        database.select(query).use {
+            val rs = it.resultSet
+
+            if(rs.next()) {
+
+                persistentObject.properties.forEach { prop ->
+                    run {
+                        val value = resultParser.parsePropertyFrom(prop, rs)
+                        val property = entityClass.memberProperties.find { it.name == prop.name }
+
+                        if(property is KMutableProperty<*>) property.setter.call(instance, value)
+                    }
+                }
+
+                return instance
+
+            } else {
+                return null
+            }
+        }
+    }
+
     companion object Factory {
 
-        inline fun <reified PRIMARY : Any, reified ENTITY : Any> create(system : DatabaseSystem, connectionString : String) : BaseRepository<PRIMARY, ENTITY> {
-            return BaseRepository<PRIMARY, ENTITY>(DatabaseConnectionFactory.create(system, connectionString), QueryBuilderFactory.create(system))
+        inline fun <reified PRIMARY : Any, reified ENTITY : Any> create(system: DatabaseSystem, connectionString: String): BaseRepository<PRIMARY, ENTITY> {
+
+            // checks for no-arg constructor
+            try {
+                ENTITY::class.createInstance()
+            } catch (ex : IllegalArgumentException) {
+                throw ORMesiException("Class ${ENTITY::class.simpleName} should have a no-arg constructor")
+            }
+
+            if(!Persistence.isAnnotatedWithPersistent(ENTITY::class)) {
+                throw ORMesiException("Class ${ENTITY::class.simpleName} needs to be annotated with ${Persistent::class.qualifiedName}")
+            }
+
+            if(!Persistence.hasValidPrimaryProperty(ENTITY::class.createInstance())) {
+                throw ORMesiException("Class ${ENTITY::class.simpleName} needs exactly one property annotated with ${Primary::class.qualifiedName} of type kotlin.Long or kotlin.String")
+            }
+
+            return BaseRepository<PRIMARY, ENTITY>(
+                    DatabaseConnectionFactory.create(system, connectionString),
+                    QueryBuilderFactory.create(system),
+                    ResultSetParser.Factory.create(system),
+                    ENTITY::class
+            )
         }
     }
 }
