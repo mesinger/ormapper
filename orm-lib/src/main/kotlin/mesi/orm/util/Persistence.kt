@@ -12,6 +12,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.jvm.jvmErasure
 
 object Persistence {
 
@@ -26,7 +27,7 @@ object Persistence {
             val type = getPrimaryKeyType(it)
             val value = it.get(instance)
 
-            return PersistentProperty(name, type, value, isPrimary = true, isForeign = false)
+            return PersistentProperty(name, type, value, it.returnType.jvmErasure, isEnum = false, isPrimary = true, isForeign = false)
         }
 
         throw ORMesiException("\nNo primary key for class ${clazz.simpleName}")
@@ -56,7 +57,7 @@ object Persistence {
                     val type = PersistentPropertyType.STRING
                     val value = prop.get(instance).toString()
 
-                    properties.add(PersistentProperty(name, type, value, isPrimary = false, isForeign = false))
+                    properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = true, isPrimary = false, isForeign = false))
                 }
 
         return properties
@@ -76,7 +77,7 @@ object Persistence {
                     val type = getPropertyType(prop)
                     val value = prop.get(instance)
 
-                    properties.add(PersistentProperty(name, type, value, isPrimary = false, isForeign = false))
+                    properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = false))
                 }
 
         return properties

@@ -12,9 +12,6 @@ import mesi.orm.query.QueryBuilder
 import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.util.Persistence
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.memberProperties
 
 /**
  * base respository, which has to be extended by the
@@ -45,7 +42,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
     }
 
     override fun get(id: PRIMARY): ENTITY? {
-        val instance = entityClass.createInstance()
+        val instance = entityClass.java.getConstructor().newInstance()
         val primaryName = Persistence.getNameOfPrimaryKey(instance)
         val persistentObject = PersistentObject.from(instance)
 
@@ -59,9 +56,11 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
                 persistentObject.properties.forEach { prop ->
                     run {
                         val value = resultParser.parsePropertyFrom(prop, rs)
-                        val property = entityClass.memberProperties.find { it.name == prop.name }
 
-                        if(property is KMutableProperty<*>) property.setter.call(instance, value)
+                        val property = entityClass.java.getDeclaredField(prop.name)
+                        property.trySetAccessible()
+
+                        if(property.canAccess(instance)) property.set(instance, value)
                     }
                 }
 
@@ -79,8 +78,8 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
 
             // checks for no-arg constructor
             try {
-                ENTITY::class.createInstance()
-            } catch (ex : IllegalArgumentException) {
+                ENTITY::class.java.getConstructor().newInstance()
+            } catch (ex : NoSuchMethodException) {
                 throw ORMesiException("Class ${ENTITY::class.simpleName} should have a no-arg constructor")
             }
 
@@ -88,7 +87,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
                 throw ORMesiException("Class ${ENTITY::class.simpleName} needs to be annotated with ${Persistent::class.qualifiedName}")
             }
 
-            if(!Persistence.hasValidPrimaryProperty(ENTITY::class.createInstance())) {
+            if(!Persistence.hasValidPrimaryProperty(ENTITY::class.java.getConstructor().newInstance())) {
                 throw ORMesiException("Class ${ENTITY::class.simpleName} needs exactly one property annotated with ${Primary::class.qualifiedName} of type kotlin.Long or kotlin.String")
             }
 

@@ -1,6 +1,7 @@
 package mesi.orm.persistence.transform
 
 import mesi.orm.util.Persistence
+import kotlin.reflect.KClass
 
 /**
  * simple representation of persistent pojos
@@ -27,6 +28,8 @@ data class PersistentProperty(
         val name : String,
         val type : PersistentPropertyType,
         var value : Any?,
+        var kotlinClass : KClass<*>,
+        var isEnum : Boolean,
         val isPrimary : Boolean,
         val isForeign : Boolean,
         val foreignTable : String? = "",

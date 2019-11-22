@@ -49,7 +49,6 @@ class SQLiteInsertQuery extends InsertQuery {
         }
         else if(property.getType().equals(PersistentPropertyType.DATETIME)) {
             var modifiedProperty = (LocalDateTime) property.getValue();
-            var formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss");
             property.setValue("'" + modifiedProperty.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "'");
         }
 

@@ -5,7 +5,7 @@ import mesi.orm.persistence.transform.PersistentProperty
 import java.sql.ResultSet
 
 interface ResultSetParser {
-    fun parsePropertyFrom(persistentProperty: PersistentProperty, rs: ResultSet) : Any
+    fun parsePropertyFrom(persistentProperty: PersistentProperty, rs: ResultSet) : Any?
 
     companion object Factory {
         fun create(system : DatabaseSystem) : ResultSetParser {

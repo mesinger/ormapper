@@ -1,5 +1,7 @@
 plugins {
     id 'application'
+    id "org.jetbrains.kotlin.plugin.noarg" version "1.3.50"
+    id "org.jetbrains.kotlin.plugin.allopen" version "1.3.50"
 }
 
 dependencies {
@@ -9,4 +11,12 @@ dependencies {
 
 application {
     mainClassName = 'mesi.employee.AppKt'
+}
+
+allOpen {
+    annotation('mesi.orm.persistence.annotations.Persistent')
+}
+
+noArg {
+    annotation('mesi.orm.persistence.annotations.Persistent')
 }
