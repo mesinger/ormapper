@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
     val mesi = Employee(1, "mesi", "inger", Gender.MALE, true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
     val rico = Employee(2, "rico", "pc", Gender.FEMALE, false, 25f, LocalDate.of(2020, 4, 1), LocalTime.of(8, 30, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
 //    val po = PersistentObject.from(mesi)
-    val employeeRepo = BaseRepository.Factory.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
+    val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
 
 //    employeeRepo.save(mesi)
 //    employeeRepo.save(rico)

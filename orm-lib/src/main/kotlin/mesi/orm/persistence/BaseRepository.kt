@@ -5,7 +5,6 @@ import mesi.orm.conn.DatabaseConnectionFactory
 import mesi.orm.conn.DatabaseSystem
 import mesi.orm.exception.ORMesiException
 import mesi.orm.persistence.annotations.Persistent
-import mesi.orm.persistence.annotations.Primary
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
 import mesi.orm.query.QueryBuilder
@@ -87,8 +86,8 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
                 throw ORMesiException("Class ${ENTITY::class.simpleName} needs to be annotated with ${Persistent::class.qualifiedName}")
             }
 
-            if(!Persistence.hasValidPrimaryProperty(ENTITY::class.java.getConstructor().newInstance())) {
-                throw ORMesiException("Class ${ENTITY::class.simpleName} needs exactly one property annotated with ${Primary::class.qualifiedName} of type kotlin.Long or kotlin.String")
+            if(Persistence.getPrimaryKey(ENTITY::class.java.getConstructor().newInstance()).kotlinClass != PRIMARY::class) {
+                throw ORMesiException("Repository for class ${ENTITY::class.simpleName} expects primary keys of type ${PRIMARY::class.qualifiedName}")
             }
 
             return BaseRepository<PRIMARY, ENTITY>(

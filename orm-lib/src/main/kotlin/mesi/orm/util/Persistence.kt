@@ -24,25 +24,13 @@ object Persistence {
         Reflected.getAllProperties(clazz).find { prop -> prop.findAnnotation<Primary>() != null }?.let {
 
             val name = it.name
-            val type = getPrimaryKeyType(it)
+            val type = getPropertyType(it)
             val value = it.get(instance)
 
             return PersistentProperty(name, type, value, it.returnType.jvmErasure, isEnum = false, isPrimary = true, isForeign = false)
         }
 
         throw ORMesiException("\nNo primary key for class ${clazz.simpleName}")
-    }
-
-    /**
-     * maps reflected [prop] to a [PersistentPropertyType]
-     * throws [ORMesiException] in case of an invalid primary type
-     */
-    fun getPrimaryKeyType(prop : KProperty1<*, *>) : PersistentPropertyType {
-        return when {
-            prop.returnType.isSubtypeOf(Long::class.createType()) -> PersistentPropertyType.LONG
-            prop.returnType.isSubtypeOf(String::class.createType()) -> PersistentPropertyType.STRING
-            else -> throw ORMesiException("\nInvalid type for primary key\nOnly use kotlin.Long, or kotlin.String as primary keys")
-        }
     }
 
     fun getEnums(instance : Any) : List<PersistentProperty> {
