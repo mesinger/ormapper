@@ -8,6 +8,10 @@ import kotlin.reflect.KClass
  */
 class PersistentObject constructor(val tableName : String, val properties : Set<PersistentProperty>) {
 
+    fun getForeigns() : List<PersistentProperty> {
+        return properties.filter { it.isForeign }
+    }
+
     companion object Builder {
         fun from(instance : Any) : PersistentObject {
 
@@ -16,6 +20,7 @@ class PersistentObject constructor(val tableName : String, val properties : Set<
             val properties = mutableSetOf<PersistentProperty>().apply {
                 add(Persistence.getPrimaryKey(instance))
                 addAll(Persistence.getEnums(instance))
+                addAll(Persistence.getForeigns(instance))
                 addAll(Persistence.getOthers(instance))
             }
 

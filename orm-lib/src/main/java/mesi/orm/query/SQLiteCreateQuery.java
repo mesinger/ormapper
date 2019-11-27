@@ -14,16 +14,15 @@ class SQLiteCreateQuery extends CreateQuery {
     @Override
     protected CreateQuery addColumn(String name, PersistentPropertyType dataType, boolean isPrimary, boolean isForeign, String foreignTable, String foreignRef) {
 
-        head.append((isForeign) ? "fk_" : "");
         head.append(name + " ");
         head.append(translateQueryType(dataType) + " ");
-        head.append((isPrimary ? "PRIMARY KEY AUTOINCREMENT " : ""));
+        head.append((isPrimary ? "PRIMARY KEY " : ""));
         head.append("NOT NULL ");
         head.setLength(head.length() - 1);
         head.append(",\n");
 
         if(isForeign) {
-            tail.append("FOREIGN KEY (fk_" + name + ") REFERENCES " + foreignTable + " (" + foreignRef + "),\n");
+            tail.append("FOREIGN KEY (" + name + ") REFERENCES " + foreignTable + " (" + foreignRef + "),\n");
         }
 
         return this;

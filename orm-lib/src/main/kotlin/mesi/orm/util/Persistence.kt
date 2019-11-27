@@ -33,6 +33,9 @@ object Persistence {
         throw ORMesiException("\nNo primary key for class ${clazz.simpleName}")
     }
 
+    /**
+     * returns all with [PersistentEnum] annotated properties in [instance]
+     */
     fun getEnums(instance : Any) : List<PersistentProperty> {
 
         val clazz : KClass<Any> = instance::class as KClass<Any>
@@ -51,6 +54,37 @@ object Persistence {
         return properties
     }
 
+    /**
+     * returns all with [Foreign] annotated properties in [instance]
+     */
+    fun getForeigns(instance: Any) : List<PersistentProperty> {
+
+        val clazz : KClass<Any> = instance::class as KClass<Any>
+        val properties = mutableListOf<PersistentProperty>()
+
+        Reflected.getAllPropertiesRecursive(clazz)
+                .filter { prop -> prop.findAnnotation<Foreign>() != null }
+                .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_ONE || prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.MANY_TO_ONE }
+                .forEach { prop ->
+
+                    val foreignInstance = prop.get(instance)
+                    val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance!!)
+
+                    val name = prop.name
+                    val value = foreignPrimaryKey.value
+                    val type = foreignPrimaryKey.type
+                    val foreignTableName = getTableName(foreignInstance::class)
+                    val foreignRef = foreignPrimaryKey.name
+
+                    properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignTable = foreignTableName, foreignRef = foreignRef))
+                }
+
+        return properties
+    }
+
+    /**
+     * returns all other properties in an [instance]
+     */
     fun getOthers(instance: Any) : List<PersistentProperty> {
 
         val clazz : KClass<Any> = instance::class as KClass<Any>
@@ -60,6 +94,7 @@ object Persistence {
                 .filter { prop -> prop.findAnnotation<Primary>() == null  }
                 .filter { prop -> prop.findAnnotation<PersistentEnum>() == null  }
                 .filter { prop -> prop.findAnnotation<PersistentTransient>() == null  }
+                .filter { prop -> prop.findAnnotation<Foreign>() == null  }
                 .forEach { prop ->
                     val name = prop.name
                     val type = getPropertyType(prop)

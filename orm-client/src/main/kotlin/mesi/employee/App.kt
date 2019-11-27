@@ -2,10 +2,8 @@ package mesi.employee
 
 import mesi.orm.conn.DatabaseSystem
 import mesi.orm.persistence.BaseRepository
-import mesi.orm.persistence.annotations.Persistent
-import mesi.orm.persistence.annotations.PersistentEnum
-import mesi.orm.persistence.annotations.PersistentTransient
-import mesi.orm.persistence.annotations.Primary
+import mesi.orm.persistence.annotations.*
+import mesi.orm.persistence.transform.PersistentObject
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -16,6 +14,7 @@ data class Employee (
         val firstName : String,
         val lastName : String,
         @PersistentEnum val gender : Gender,
+        @Foreign(relation = ForeignRelation.MANY_TO_ONE) val department : Department,
         val isChef : Boolean,
         val salary : Float,
         val entryDate : LocalDate,
@@ -28,15 +27,20 @@ enum class Gender {
     FEMALE
 }
 
+@Persistent
+@Table(tableName = "departments_table")
+data class Department (
+        @Primary val name : String
+)
+
 fun main(args: Array<String>) {
 
-    val mesi = Employee(1, "mesi", "inger", Gender.MALE, true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
-    val rico = Employee(2, "rico", "pc", Gender.FEMALE, false, 25f, LocalDate.of(2020, 4, 1), LocalTime.of(8, 30, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
-//    val po = PersistentObject.from(mesi)
+    val management = Department("management")
+    val mesi = Employee(1, "mesi", "inger", Gender.MALE, management,true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val po = PersistentObject.from(mesi)
+    val departmentRepo = BaseRepository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
     val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
 
-//    employeeRepo.save(mesi)
-//    employeeRepo.save(rico)
-
-    val fetched = employeeRepo.get(1)
+    departmentRepo.save(management)
+    employeeRepo.save(mesi)
 }
