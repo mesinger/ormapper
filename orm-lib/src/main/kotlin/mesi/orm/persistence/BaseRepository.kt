@@ -10,6 +10,7 @@ import mesi.orm.persistence.transform.PersistentObject
 import mesi.orm.query.QueryBuilder
 import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.util.Persistence
+import java.sql.ResultSet
 import kotlin.reflect.KClass
 
 /**
@@ -43,31 +44,59 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
     override fun get(id: PRIMARY): ENTITY? {
         val instance = entityClass.java.getConstructor().newInstance()
         val primaryName = Persistence.getNameOfPrimaryKey(instance)
-        val persistentObject = PersistentObject.from(instance)
 
         val query = queryBuilder.select().from(entityClass.java).where("$primaryName=$id")
 
         database.select(query).use {
             val rs = it.resultSet
+            return getFromResultSet(rs) as ENTITY?
+        }
+    }
 
-            if(rs.next()) {
+    private fun getForeign(primary : Any, primaryName : String, clazz : KClass<*>) : Any? {
 
-                persistentObject.properties.forEach { prop ->
-                    run {
-                        val value = resultParser.parsePropertyFrom(prop, rs)
+        val query = queryBuilder.select().from(clazz.java).where("$primaryName=$primary")
 
-                        val property = entityClass.java.getDeclaredField(prop.name)
-                        property.trySetAccessible()
+        database.select(query).use {
+            return getFromResultSet(it.resultSet, clazz)
+        }
+    }
 
-                        if(property.canAccess(instance)) property.set(instance, value)
-                    }
-                }
+    private fun getFromResultSet(rs : ResultSet, clazz : KClass<*> = entityClass) : Any? {
 
-                return instance
+        val instance = clazz.java.getConstructor().newInstance()
+        val persistentObject = PersistentObject.from(instance)
 
-            } else {
-                return null
+        if(rs.next()) {
+
+            persistentObject.getAllNonForeigns().forEach { prop ->
+                val value = resultParser.parsePropertyFrom(prop, rs)
+
+                val property = clazz.java.getDeclaredField(prop.name)
+                property.trySetAccessible()
+
+                if(property.canAccess(instance)) property.set(instance, value)
             }
+
+            persistentObject.getForeigns().forEach { prop->
+                var primary = resultParser.parsePropertyFrom(prop, rs)!!
+                val foreignInstance = prop.kotlinClass.java.getConstructor().newInstance()
+                val primaryName = Persistence.getNameOfPrimaryKey(foreignInstance)
+                if(primary is String)
+                    primary = "'$primary'"
+
+                val fetchedForeign = getForeign(primary, primaryName, prop.kotlinClass)
+
+                val property = clazz.java.getDeclaredField(prop.name)
+                property.trySetAccessible()
+
+                if(property.canAccess(instance)) property.set(instance, fetchedForeign)
+            }
+
+            return instance
+
+        } else {
+            return null
         }
     }
 

@@ -12,6 +12,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.jvmErasure
 
 object Persistence {
@@ -67,16 +68,23 @@ object Persistence {
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_ONE || prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.MANY_TO_ONE }
                 .forEach { prop ->
 
-                    val foreignInstance = prop.get(instance)
-                    val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance!!)
+                    val foreignInstance = prop.get(instance) ?: prop.javaField!!.type.getConstructor().newInstance()
 
-                    val name = prop.name
-                    val value = foreignPrimaryKey.value
-                    val type = foreignPrimaryKey.type
-                    val foreignTableName = getTableName(foreignInstance::class)
-                    val foreignRef = foreignPrimaryKey.name
+                    val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance)
 
-                    properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignTable = foreignTableName, foreignRef = foreignRef))
+                    if(foreignInstance != null) {
+
+                        val name = prop.name
+                        val value = foreignPrimaryKey.value
+                        val type = foreignPrimaryKey.type
+                        val foreignTableName = getTableName(foreignInstance::class)
+                        val foreignRef = foreignPrimaryKey.name
+
+                        properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignTable = foreignTableName, foreignRef = foreignRef))
+                    }
+                    else {
+                        properties.add(PersistentProperty(prop.name, getPropertyType(prop), prop.javaClass.getConstructor().newInstance(), prop.returnType.jvmErasure, false, false, true, "", prop.name))
+                    }
                 }
 
         return properties

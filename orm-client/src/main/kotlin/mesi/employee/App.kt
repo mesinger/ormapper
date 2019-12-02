@@ -41,6 +41,8 @@ fun main(args: Array<String>) {
     val departmentRepo = BaseRepository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
     val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
 
-    departmentRepo.save(management)
-    employeeRepo.save(mesi)
+//    departmentRepo.save(management)
+//    employeeRepo.save(mesi)
+
+    val fetched = employeeRepo.get(1)
 }

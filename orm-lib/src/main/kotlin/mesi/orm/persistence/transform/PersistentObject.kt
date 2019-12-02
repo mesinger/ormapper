@@ -12,6 +12,10 @@ class PersistentObject constructor(val tableName : String, val properties : Set<
         return properties.filter { it.isForeign }
     }
 
+    fun getAllNonForeigns() : List<PersistentProperty> {
+        return properties.filter { !it.isForeign }
+    }
+
     companion object Builder {
         fun from(instance : Any) : PersistentObject {
 
@@ -33,8 +37,8 @@ data class PersistentProperty(
         val name : String,
         val type : PersistentPropertyType,
         var value : Any?,
-        var kotlinClass : KClass<*>,
-        var isEnum : Boolean,
+        val kotlinClass : KClass<*>,
+        val isEnum : Boolean,
         val isPrimary : Boolean,
         val isForeign : Boolean,
         val foreignTable : String? = "",
