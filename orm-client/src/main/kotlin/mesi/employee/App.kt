@@ -1,7 +1,7 @@
 package mesi.employee
 
 import mesi.orm.conn.DatabaseSystem
-import mesi.orm.persistence.BaseRepository
+import mesi.orm.persistence.Repository
 import mesi.orm.persistence.annotations.*
 import mesi.orm.persistence.transform.PersistentObject
 import java.time.LocalDate
@@ -15,11 +15,11 @@ data class Employee (
         val lastName : String,
         @PersistentEnum val gender : Gender,
         @Foreign(relation = ForeignRelation.MANY_TO_ONE) val department : Department,
+        @Foreign(relation = ForeignRelation.ONE_TO_MANY, clazz = Project::class) val projects : List<Project>,
         val isChef : Boolean,
         val salary : Float,
         val entryDate : LocalDate,
-        val shiftStart : LocalTime,
-        @PersistentTransient val projectDeadLine : LocalDateTime
+        @PersistentTransient val shiftStart : LocalTime
 )
 
 enum class Gender {
@@ -33,16 +33,33 @@ data class Department (
         @Primary val name : String
 )
 
+@Persistent
+data class Project (
+        @Primary val id : Long,
+        val name : String,
+        val deadline : LocalDateTime
+)
+
 fun main(args: Array<String>) {
 
     val management = Department("management")
-    val mesi = Employee(1, "mesi", "inger", Gender.MALE, management,true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val project1 = Project(1, "project 1", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val project2 = Project(2, "project 2", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+
+    val mesi = Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
+    val rico = Employee(2, "rico", "pc", Gender.FEMALE, management, listOf(), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
+
     val po = PersistentObject.from(mesi)
-    val departmentRepo = BaseRepository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
-    val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
 
-//    departmentRepo.save(management)
-//    employeeRepo.save(mesi)
+    val departmentRepo = Repository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+    val projectRepo = Repository.create<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+    val employeeRepo = Repository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
 
-    val fetched = employeeRepo.get(1)
+    departmentRepo.save(management)
+    projectRepo.save(project1)
+    projectRepo.save(project2)
+    employeeRepo.save(mesi)
+    employeeRepo.save(rico)
+
+
 }

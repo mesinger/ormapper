@@ -99,32 +99,4 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
             return null
         }
     }
-
-    companion object Factory {
-
-        inline fun <reified PRIMARY : Any, reified ENTITY : Any> create(system: DatabaseSystem, connectionString: String): BaseRepository<PRIMARY, ENTITY> {
-
-            // checks for no-arg constructor
-            try {
-                ENTITY::class.java.getConstructor().newInstance()
-            } catch (ex : NoSuchMethodException) {
-                throw ORMesiException("Class ${ENTITY::class.simpleName} should have a no-arg constructor")
-            }
-
-            if(!Persistence.isAnnotatedWithPersistent(ENTITY::class)) {
-                throw ORMesiException("Class ${ENTITY::class.simpleName} needs to be annotated with ${Persistent::class.qualifiedName}")
-            }
-
-            if(Persistence.getPrimaryKey(ENTITY::class.java.getConstructor().newInstance()).kotlinClass != PRIMARY::class) {
-                throw ORMesiException("Repository for class ${ENTITY::class.simpleName} expects primary keys of type ${PRIMARY::class.qualifiedName}")
-            }
-
-            return BaseRepository<PRIMARY, ENTITY>(
-                    DatabaseConnectionFactory.create(system, connectionString),
-                    QueryBuilderFactory.create(system),
-                    ResultSetParser.Factory.create(system),
-                    ENTITY::class
-            )
-        }
-    }
 }

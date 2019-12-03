@@ -87,6 +87,26 @@ object Persistence {
                     }
                 }
 
+        Reflected.getAllPropertiesRecursive(clazz)
+                .filter { prop -> prop.findAnnotation<Foreign>() != null }
+                .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_MANY }
+                .forEach { prop ->
+
+                    val foreignInstanceList = (prop.get(instance) ?: prop.javaField!!.type.getConstructor().newInstance()) as? List<*>
+                            ?: throw ORMesiException("Foreign relation ONE_TO_MANY has to be of type of list")
+
+                    val name = prop.name
+                    val value = foreignInstanceList.map { getPrimaryKey(it!!).value.toString() }.fold("") { acc, s -> "$acc;$s" }
+                    val kclass = prop.findAnnotation<Foreign>()!!.clazz
+
+                    val type = PersistentPropertyType.STRING
+
+                    val foreignTableName = getTableName(kclass)
+                    val foreignRef = getNameOfPrimaryKey(kclass.java.getConstructor().newInstance())
+
+                    properties.add(PersistentProperty(name, type, value, kclass, false, false, true, foreignTableName, foreignRef))
+                }
+
         return properties
     }
 
