@@ -1,14 +1,10 @@
 package mesi.orm.persistence
 
 import mesi.orm.conn.DatabaseConnection
-import mesi.orm.conn.DatabaseConnectionFactory
-import mesi.orm.conn.DatabaseSystem
-import mesi.orm.exception.ORMesiException
-import mesi.orm.persistence.annotations.Persistent
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
+import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.query.QueryBuilder
-import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.util.Persistence
 import java.sql.ResultSet
 import kotlin.reflect.KClass
@@ -72,13 +68,10 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
             persistentObject.getAllNonForeigns().forEach { prop ->
                 val value = resultParser.parsePropertyFrom(prop, rs)
 
-                val property = clazz.java.getDeclaredField(prop.name)
-                property.trySetAccessible()
-
-                if(property.canAccess(instance)) property.set(instance, value)
+                applyValueToInstance(instance, value!!, clazz, prop)
             }
 
-            persistentObject.getForeigns().forEach { prop->
+            persistentObject.getForeignsSimple().forEach { prop->
                 var primary = resultParser.parsePropertyFrom(prop, rs)!!
                 val foreignInstance = prop.kotlinClass.java.getConstructor().newInstance()
                 val primaryName = Persistence.getNameOfPrimaryKey(foreignInstance)
@@ -87,10 +80,18 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
 
                 val fetchedForeign = getForeign(primary, primaryName, prop.kotlinClass)
 
-                val property = clazz.java.getDeclaredField(prop.name)
-                property.trySetAccessible()
+                applyValueToInstance(instance, fetchedForeign!!, clazz, prop)
+            }
 
-                if(property.canAccess(instance)) property.set(instance, fetchedForeign)
+            persistentObject.getForeignsComplex().forEach { prop ->
+                val primaryListasString = (resultParser.parsePropertyFrom(prop, rs)!! as String).removePrefix(";")
+                val primariesList = (primaryListasString as String).split(';')
+
+                val foreignInstances = mutableListOf<Any>()
+
+                primariesList.forEach { primary -> foreignInstances.add(getForeign(primary, Persistence.getNameOfPrimaryKey(prop.kotlinClass.java.getConstructor().newInstance()), prop.kotlinClass)!!)}
+
+                applyValueToInstance(instance, foreignInstances, clazz, prop)
             }
 
             return instance
@@ -98,5 +99,12 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
         } else {
             return null
         }
+    }
+
+    private fun applyValueToInstance(instance : Any, value : Any, clazz: KClass<*>, prop : PersistentProperty) {
+        val property = clazz.java.getDeclaredField(prop.name)
+        property.trySetAccessible()
+
+        if(property.canAccess(instance)) property.set(instance, value)
     }
 }

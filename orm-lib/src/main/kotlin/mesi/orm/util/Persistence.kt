@@ -80,10 +80,10 @@ object Persistence {
                         val foreignTableName = getTableName(foreignInstance::class)
                         val foreignRef = foreignPrimaryKey.name
 
-                        properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignTable = foreignTableName, foreignRef = foreignRef))
+                        properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignRelation = prop.findAnnotation<Foreign>()!!.relation, foreignTable = foreignTableName, foreignRef = foreignRef))
                     }
                     else {
-                        properties.add(PersistentProperty(prop.name, getPropertyType(prop), prop.javaClass.getConstructor().newInstance(), prop.returnType.jvmErasure, false, false, true, "", prop.name))
+                        properties.add(PersistentProperty(prop.name, getPropertyType(prop), prop.javaClass.getConstructor().newInstance(), prop.returnType.jvmErasure, false, false, true, prop.findAnnotation<Foreign>()!!.relation, Persistence.getTableName(prop.returnType.jvmErasure), prop.name))
                     }
                 }
 
@@ -92,11 +92,10 @@ object Persistence {
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_MANY }
                 .forEach { prop ->
 
-                    val foreignInstanceList = (prop.get(instance) ?: prop.javaField!!.type.getConstructor().newInstance()) as? List<*>
-                            ?: throw ORMesiException("Foreign relation ONE_TO_MANY has to be of type of list")
+                    val foreignInstanceList = prop.get(instance) as List<*>?
 
                     val name = prop.name
-                    val value = foreignInstanceList.map { getPrimaryKey(it!!).value.toString() }.fold("") { acc, s -> "$acc;$s" }
+                    val value = foreignInstanceList?.map { getPrimaryKey(it!!).value.toString() }?.fold("") { acc, s -> "$acc;$s" } ?: ""
                     val kclass = prop.findAnnotation<Foreign>()!!.clazz
 
                     val type = PersistentPropertyType.STRING
@@ -104,7 +103,7 @@ object Persistence {
                     val foreignTableName = getTableName(kclass)
                     val foreignRef = getNameOfPrimaryKey(kclass.java.getConstructor().newInstance())
 
-                    properties.add(PersistentProperty(name, type, value, kclass, false, false, true, foreignTableName, foreignRef))
+                    properties.add(PersistentProperty(name, type, value, kclass, false, false, true, prop.findAnnotation<Foreign>()!!.relation, foreignTableName, foreignRef))
                 }
 
         return properties

@@ -55,11 +55,11 @@ fun main(args: Array<String>) {
     val projectRepo = Repository.create<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
     val employeeRepo = Repository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
 
-    departmentRepo.save(management)
-    projectRepo.save(project1)
-    projectRepo.save(project2)
-    employeeRepo.save(mesi)
-    employeeRepo.save(rico)
+//    departmentRepo.save(management)
+//    projectRepo.save(project1)
+//    projectRepo.save(project2)
+//    employeeRepo.save(mesi)
+//    employeeRepo.save(rico)
 
-
+    val fetched = employeeRepo.get(1)
 }
