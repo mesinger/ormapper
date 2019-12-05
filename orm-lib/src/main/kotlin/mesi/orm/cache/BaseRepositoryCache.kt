@@ -18,7 +18,5 @@ internal open class BaseRepositoryCache internal constructor () : RepositoryCach
         raw.dict.clear()
     }
 
-    private fun getKey(type: String, id: String) : String {
-        return "$type-$id"
-    }
+    private fun getKey(type: String, id: String) = "$type-$id"
 }

@@ -6,6 +6,11 @@ import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
 import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.query.QueryBuilder
+import mesi.orm.transaction.*
+import mesi.orm.transaction.BaseRepositoryTransaction
+import mesi.orm.transaction.CurrentTransactionState
+import mesi.orm.transaction.NoTransactionState
+import mesi.orm.transaction.TransactionState
 import mesi.orm.util.Persistence
 import java.sql.ResultSet
 import kotlin.reflect.KClass
@@ -22,6 +27,8 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         private val entityClass : KClass<ENTITY>
 ) : Repository<PRIMARY, ENTITY> {
 
+    private var transactionState : TransactionState = NoTransactionState()
+
     init {
         database.open()
     }
@@ -33,15 +40,16 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
 
             val createQuery = queryBuilder.create(persistentObject.tableName)
             persistentObject.properties.forEach { createQuery.addColumn(it) }
-            database.createTable(createQuery)
+            transactionState.addTask { database.createTable(createQuery) }
         }
 
         val insertQuery = queryBuilder.insert(persistentObject)
-        database.insert(insertQuery)
+
+        transactionState.addTask { database.insert(insertQuery) }
     }
 
     override fun update(entity: ENTITY) {
-
+        TODO()
     }
 
     override fun get(id: PRIMARY): ENTITY? {
@@ -64,6 +72,13 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
 
             return entity as ENTITY?
         }
+    }
+
+    override fun getTransaction(): RepositoryTransaction {
+        val transaction = BaseRepositoryTransaction()
+        transaction.begin()
+        transactionState = CurrentTransactionState(transaction)
+        return transaction
     }
 
     private fun getForeign(primary : Any, primaryName : String, clazz : KClass<*>) : Any? {

@@ -8,6 +8,7 @@ import mesi.orm.persistence.annotations.Persistent
 import mesi.orm.persistence.fetch.RepositoryFetchable
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.query.QueryBuilderFactory
+import mesi.orm.transaction.RepositoryTransaction
 import mesi.orm.util.Persistence
 
 /**
@@ -33,6 +34,11 @@ interface Repository<PRIMARY, ENTITY> : RepositoryFetchable<PRIMARY, ENTITY> {
      * returns the updated [ENTITY] on success
      */
     fun update(entity: ENTITY)
+
+    /**
+     * returns an initialized [RepositoryTransaction]
+     */
+    fun getTransaction() : RepositoryTransaction
 
     companion object Factory {
 
