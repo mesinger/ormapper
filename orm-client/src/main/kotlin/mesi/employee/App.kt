@@ -7,6 +7,7 @@ import mesi.orm.persistence.transform.PersistentObject
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import javax.management.relation.Relation
 
 @Persistent
 data class Employee (
@@ -61,5 +62,7 @@ fun main(args: Array<String>) {
 //    employeeRepo.save(mesi)
 //    employeeRepo.save(rico)
 
-    val fetched = employeeRepo.get(1)
+    val fetchedMesi = employeeRepo.get(1)
+    val fetchedProject1 = projectRepo.get(1)
+    val fetchedMesi2 = employeeRepo.get(1)
 }

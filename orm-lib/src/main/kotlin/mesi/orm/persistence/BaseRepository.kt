@@ -1,5 +1,6 @@
 package mesi.orm.persistence
 
+import mesi.orm.cache.RepositoryCache
 import mesi.orm.conn.DatabaseConnection
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
@@ -13,7 +14,13 @@ import kotlin.reflect.KClass
  * base respository, which has to be extended by the
  * user with needed primary and entity types
  */
-class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder, private val resultParser : ResultSetParser, private val entityClass : KClass<ENTITY>) : Repository<PRIMARY, ENTITY> {
+class BaseRepository<PRIMARY : Any, ENTITY : Any>(
+        private val database : DatabaseConnection,
+        private val queryBuilder: QueryBuilder,
+        private val resultParser : ResultSetParser,
+        private val cache : RepositoryCache,
+        private val entityClass : KClass<ENTITY>
+) : Repository<PRIMARY, ENTITY> {
 
     init {
         database.open()
@@ -38,6 +45,11 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
     }
 
     override fun get(id: PRIMARY): ENTITY? {
+
+        if(cache.exists(entityClass.toString(), id.toString())) {
+            return cache.get(entityClass.toString(), id.toString()) as ENTITY?
+        }
+
         val instance = entityClass.java.getConstructor().newInstance()
         val primaryName = Persistence.getNameOfPrimaryKey(instance)
 
@@ -45,16 +57,30 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
 
         database.select(query).use {
             val rs = it.resultSet
-            return getFromResultSet(rs) as ENTITY?
+
+            val entity = getFromResultSet(rs)
+
+            entity?.let { cache.put(entityClass.toString(), id.toString(), entity) }
+
+            return entity as ENTITY?
         }
     }
 
     private fun getForeign(primary : Any, primaryName : String, clazz : KClass<*>) : Any? {
 
+        if(cache.exists(clazz.toString(), primary.toString())) {
+            return cache.get(clazz.toString(), primary.toString())
+        }
+
         val query = queryBuilder.select().from(clazz.java).where("$primaryName=$primary")
 
         database.select(query).use {
-            return getFromResultSet(it.resultSet, clazz)
+
+            val entity = getFromResultSet(it.resultSet, clazz)
+
+            entity?.let { cache.put(clazz.toString(), primary.toString(), entity) }
+
+            return entity as ENTITY?
         }
     }
 

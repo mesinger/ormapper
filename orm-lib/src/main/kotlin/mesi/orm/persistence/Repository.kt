@@ -1,5 +1,6 @@
 package mesi.orm.persistence
 
+import mesi.orm.cache.RepositoryCache
 import mesi.orm.conn.DatabaseConnectionFactory
 import mesi.orm.conn.DatabaseSystem
 import mesi.orm.exception.ORMesiException
@@ -55,7 +56,8 @@ interface Repository<PRIMARY, ENTITY> : RepositoryFetchable<PRIMARY, ENTITY> {
             return BaseRepository<PRIMARY, ENTITY>(
                     DatabaseConnectionFactory.create(system, connectionString),
                     QueryBuilderFactory.create(system),
-                    ResultSetParser.Factory.create(system),
+                    ResultSetParser.create(system),
+                    RepositoryCache.create(),
                     ENTITY::class
             )
         }
