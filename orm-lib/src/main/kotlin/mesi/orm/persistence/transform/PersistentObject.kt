@@ -1,5 +1,6 @@
 package mesi.orm.persistence.transform
 
+import mesi.orm.persistence.annotations.ForeignRelation
 import mesi.orm.util.Persistence
 import kotlin.reflect.KClass
 
@@ -8,8 +9,16 @@ import kotlin.reflect.KClass
  */
 class PersistentObject constructor(val tableName : String, val properties : Set<PersistentProperty>) {
 
-    fun getForeigns() : List<PersistentProperty> {
-        return properties.filter { it.isForeign }
+    fun getForeignsSimple() : List<PersistentProperty> {
+        return properties.filter { it.isForeign }.filter { it.foreignRelation == ForeignRelation.ONE_TO_ONE || it.foreignRelation == ForeignRelation.MANY_TO_ONE }
+    }
+
+    fun getForeignsComplex() : List<PersistentProperty> {
+        return properties.filter { it.isForeign }.filter { it.foreignRelation == ForeignRelation.ONE_TO_MANY }
+    }
+
+    fun getAllNonForeigns() : List<PersistentProperty> {
+        return properties.filter { !it.isForeign }
     }
 
     fun getPrimary() : PersistentProperty? {
@@ -41,12 +50,13 @@ data class PersistentProperty(
         val name : String,
         val type : PersistentPropertyType,
         var value : Any?,
-        var kotlinClass : KClass<*>,
-        var isEnum : Boolean,
+        val kotlinClass : KClass<*>,
+        val isEnum : Boolean,
         val isPrimary : Boolean,
         val isForeign : Boolean,
-        val foreignTable : String? = "",
-        val foreignRef : String? = ""
+        val foreignRelation : ForeignRelation = ForeignRelation.ONE_TO_ONE,
+        val foreignTable : String = "",
+        val foreignRef : String = ""
 )
 
 enum class PersistentPropertyType {

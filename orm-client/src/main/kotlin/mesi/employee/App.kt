@@ -1,8 +1,8 @@
 package mesi.employee
 
 import mesi.orm.conn.DatabaseSystem
-import mesi.orm.persistence.BaseRepository
 import mesi.orm.persistence.annotations.*
+import mesi.orm.persistence.context.persistenceContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -14,11 +14,11 @@ data class Employee (
         val lastName : String,
         @PersistentEnum val gender : Gender,
         @Foreign(relation = ForeignRelation.MANY_TO_ONE) val department : Department,
+        @Foreign(relation = ForeignRelation.ONE_TO_MANY, clazz = Project::class) val projects : List<Project>,
         val isChef : Boolean,
         val salary : Float,
         val entryDate : LocalDate,
-        val shiftStart : LocalTime,
-        @PersistentTransient val projectDeadLine : LocalDateTime
+        @PersistentTransient val shiftStart : LocalTime
 )
 
 enum class Gender {
@@ -32,20 +32,43 @@ data class Department (
         @Primary val name : String
 )
 
+@Persistent
+data class Project (
+        @Primary val id : Long,
+        val name : String,
+        val deadline : LocalDateTime
+)
+
 fun main(args: Array<String>) {
 
     val management = Department("management")
-    val mesi = Employee(1, "mesi", "inger", Gender.MALE, management,true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
-    val rico = Employee(2, "rico", "pc", Gender.MALE, management,false, 500.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val project1 = Project(1, "project 1", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val project2 = Project(2, "project 2", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
 
-    val departmentRepo = BaseRepository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
-    val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
+    val mesi = Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
+    val rico = Employee(2, "rico", "pc", Gender.FEMALE, management, listOf(), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
 
-//    departmentRepo.save(management)
-//    employeeRepo.save(mesi)
-//    employeeRepo.save(rico)
+    persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
+        val departmentRepo = createRepo<String, Department>()
 
-    val allEmployees = employeeRepo.getAll().fetch()
-    val managementEmployees = employeeRepo.getAll().where("department='management'").fetch()
-    val d = employeeRepo.getAll().where("id=1").or().where("id=2").and().where("firstName='mesi'").fetch()
+        transactional {
+            departmentRepo.save(management)
+        }
+    }
+
+//    val departmentRepo = context.createRepo<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//    val projectRepo = context.createRepo<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//    val employeeRepo = context.createRepo<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//
+//    transactional(listOf(departmentRepo, projectRepo, employeeRepo)) {
+//        departmentRepo.save(management)
+//        projectRepo.save(project1)
+//        projectRepo.save(project2)
+//        employeeRepo.save(mesi)
+//        employeeRepo.save(rico)
+//    }
+
+//    val fetchedMesi = employeeRepo.get(1)
+//    val fetchedProject1 = projectRepo.get(1)
+//    val fetchedMesi2 = employeeRepo.get(1)
 }

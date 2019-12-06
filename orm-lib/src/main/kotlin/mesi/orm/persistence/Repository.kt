@@ -1,6 +1,15 @@
 package mesi.orm.persistence
 
+import mesi.orm.cache.RepositoryCache
+import mesi.orm.conn.DatabaseConnectionFactory
+import mesi.orm.conn.DatabaseSystem
+import mesi.orm.exception.ORMesiException
+import mesi.orm.persistence.annotations.Persistent
 import mesi.orm.persistence.fetch.RepositoryFetchable
+import mesi.orm.persistence.fetch.ResultSetParser
+import mesi.orm.query.QueryBuilderFactory
+import mesi.orm.transaction.RepositoryTransaction
+import mesi.orm.util.Persistence
 
 /**
  * manages access
@@ -25,4 +34,9 @@ interface Repository<PRIMARY, ENTITY> : RepositoryFetchable<PRIMARY, ENTITY> {
      * returns the updated [ENTITY] on success
      */
     fun update(entity: ENTITY)
+
+    /**
+     * returns an initialized [RepositoryTransaction]
+     */
+    fun getTransaction() : RepositoryTransaction
 }

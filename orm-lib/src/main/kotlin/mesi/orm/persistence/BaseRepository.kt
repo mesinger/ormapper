@@ -1,17 +1,14 @@
 package mesi.orm.persistence
 
+import mesi.orm.cache.RepositoryCache
 import mesi.orm.conn.DatabaseConnection
-import mesi.orm.conn.DatabaseConnectionFactory
-import mesi.orm.conn.DatabaseSystem
-import mesi.orm.exception.ORMesiException
-import mesi.orm.persistence.annotations.Persistent
 import mesi.orm.persistence.fetch.RepositoryFetchable
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
 import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.query.QueryBuilder
-import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.query.SelectQuery
+import mesi.orm.transaction.*
 import mesi.orm.util.Persistence
 import java.sql.ResultSet
 import kotlin.reflect.KClass
@@ -20,10 +17,15 @@ import kotlin.reflect.KClass
  * base respository, which has to be extended by the
  * user with needed primary and entity types
  */
-class BaseRepository<PRIMARY : Any, ENTITY : Any>
-(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder, private val resultParser : ResultSetParser, private val entityClass : KClass<ENTITY>)
-    : Repository<PRIMARY, ENTITY> {
+class BaseRepository<PRIMARY : Any, ENTITY : Any>(
+        private val database : DatabaseConnection,
+        private val queryBuilder: QueryBuilder,
+        private val resultParser : ResultSetParser,
+        private val cache : RepositoryCache,
+        private val entityClass : KClass<ENTITY>
+) : Repository<PRIMARY, ENTITY> {
 
+    private var transactionState : TransactionState = NoTransactionState()
     private var selectQuery : SelectQuery
 
     init {
@@ -34,15 +36,18 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>
     override fun save(entity: ENTITY) {
         val persistentObject = PersistentObject.Builder.from(entity)
 
-        if(!database.tableExists(persistentObject.tableName)) {
+        transactionState.addTask {
+            if(!database.tableExists(persistentObject.tableName)) {
 
-            val createQuery = queryBuilder.create(persistentObject.tableName)
-            persistentObject.properties.forEach { createQuery.addColumn(it) }
-            database.createTable(createQuery)
+                val createQuery = queryBuilder.create(persistentObject.tableName)
+                persistentObject.properties.forEach { createQuery.addColumn(it) }
+                database.createTable(createQuery)
+            }
         }
 
         val insertQuery = queryBuilder.insert(persistentObject)
-        database.insert(insertQuery)
+
+        transactionState.addTask { database.insert(insertQuery) }
     }
 
     override fun update(entity: ENTITY) {
@@ -50,28 +55,50 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>
     }
 
     override fun get(id: PRIMARY): ENTITY? {
+
+        if(cache.exists(entityClass.toString(), id.toString())) {
+            return cache.get(entityClass.toString(), id.toString()) as ENTITY?
+        }
+
         val instance = entityClass.java.getConstructor().newInstance()
         val primaryName = Persistence.getNameOfPrimaryKey(instance)
-        val persistentObject = PersistentObject.from(instance)
 
         val query = queryBuilder.select().from(entityClass.java).where("$primaryName=$id")
 
         database.select(query).use {
             val rs = it.resultSet
 
-            if(rs.next()) {
+            val entity = getFromResultSet(rs)
 
-                persistentObject.properties.forEach { prop -> injectPropertyFromResultSet(instance, prop, rs)}
-                return instance
+            entity?.let { cache.put(entityClass.toString(), id.toString(), entity) }
 
-            } else {
-                return null
-            }
+            return entity as ENTITY?
         }
     }
 
-    private fun getForeign(primary : Any, clazz : KClass<*>) : Any? {
-        return clazz.java.getConstructor().newInstance()
+    override fun getTransaction(): RepositoryTransaction {
+        val transaction = BaseRepositoryTransaction()
+        transaction.begin()
+        transactionState = CurrentTransactionState(transaction)
+        return transaction
+    }
+
+    private fun getForeign(primary : Any, primaryName : String, clazz : KClass<*>) : Any? {
+
+        if(cache.exists(clazz.toString(), primary.toString())) {
+            return cache.get(clazz.toString(), primary.toString())
+        }
+
+        val query = queryBuilder.select().from(clazz.java).where("$primaryName=$primary")
+
+        database.select(query).use {
+
+            val entity = getFromResultSet(it.resultSet, clazz)
+
+            entity?.let { cache.put(clazz.toString(), primary.toString(), entity) }
+
+            return entity as ENTITY?
+        }
     }
 
     override fun fetch(): List<ENTITY> {
@@ -87,7 +114,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>
                 val entity = entityClass.java.getConstructor().newInstance()
 
                 persistentObject.getAllWithoutForeigns().forEach { injectPropertyFromResultSet(entity, it, rs) }
-                persistentObject.getForeigns().forEach {  }
+//                persistentObject.getForeigns().forEach {  }
 
                 entities.add(entity)
             }
@@ -132,32 +159,53 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>
 
         if(property.canAccess(instance)) property.set(instance, value)
     }
+    private fun getFromResultSet(rs : ResultSet, clazz : KClass<*> = entityClass) : Any? {
 
-    companion object Factory {
+        val instance = clazz.java.getConstructor().newInstance()
+        val persistentObject = PersistentObject.from(instance)
 
-        inline fun <reified PRIMARY : Any, reified ENTITY : Any> create(system: DatabaseSystem, connectionString: String): BaseRepository<PRIMARY, ENTITY> {
+        if(rs.next()) {
 
-            // checks for no-arg constructor
-            try {
-                ENTITY::class.java.getConstructor().newInstance()
-            } catch (ex : NoSuchMethodException) {
-                throw ORMesiException("Class ${ENTITY::class.simpleName} should have a no-arg constructor")
+            persistentObject.getAllNonForeigns().forEach { prop ->
+                val value = resultParser.parsePropertyFrom(prop, rs)
+
+                applyValueToInstance(instance, value!!, clazz, prop)
             }
 
-            if(!Persistence.isAnnotatedWithPersistent(ENTITY::class)) {
-                throw ORMesiException("Class ${ENTITY::class.simpleName} needs to be annotated with ${Persistent::class.qualifiedName}")
+            persistentObject.getForeignsSimple().forEach { prop->
+                var primary = resultParser.parsePropertyFrom(prop, rs)!!
+                val foreignInstance = prop.kotlinClass.java.getConstructor().newInstance()
+                val primaryName = Persistence.getNameOfPrimaryKey(foreignInstance)
+                if(primary is String)
+                    primary = "'$primary'"
+
+                val fetchedForeign = getForeign(primary, primaryName, prop.kotlinClass)
+
+                applyValueToInstance(instance, fetchedForeign!!, clazz, prop)
             }
 
-            if(Persistence.getPrimaryKey(ENTITY::class.java.getConstructor().newInstance()).kotlinClass != PRIMARY::class) {
-                throw ORMesiException("Repository for class ${ENTITY::class.simpleName} expects primary keys of type ${PRIMARY::class.qualifiedName}")
+            persistentObject.getForeignsComplex().forEach { prop ->
+                val primaryListasString = (resultParser.parsePropertyFrom(prop, rs)!! as String).removePrefix(";")
+                val primariesList = (primaryListasString as String).split(';')
+
+                val foreignInstances = mutableListOf<Any>()
+
+                primariesList.forEach { primary -> foreignInstances.add(getForeign(primary, Persistence.getNameOfPrimaryKey(prop.kotlinClass.java.getConstructor().newInstance()), prop.kotlinClass)!!)}
+
+                applyValueToInstance(instance, foreignInstances, clazz, prop)
             }
 
-            return BaseRepository<PRIMARY, ENTITY>(
-                    DatabaseConnectionFactory.create(system, connectionString),
-                    QueryBuilderFactory.create(system),
-                    ResultSetParser.Factory.create(system),
-                    ENTITY::class
-            )
+            return instance
+
+        } else {
+            return null
         }
+    }
+
+    private fun applyValueToInstance(instance : Any, value : Any, clazz: KClass<*>, prop : PersistentProperty) {
+        val property = clazz.java.getDeclaredField(prop.name)
+        property.trySetAccessible()
+
+        if(property.canAccess(instance)) property.set(instance, value)
     }
 }

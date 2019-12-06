@@ -12,6 +12,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.jvmErasure
 
 object Persistence {
@@ -67,16 +68,42 @@ object Persistence {
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_ONE || prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.MANY_TO_ONE }
                 .forEach { prop ->
 
-                    val foreignInstance = prop.get(instance).let {it}.run { prop.returnType.jvmErasure.java.getConstructor().newInstance() }
+                    val foreignInstance = prop.get(instance) ?: prop.javaField!!.type.getConstructor().newInstance()
+
                     val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance)
 
-                    val name = prop.name
-                    val value = foreignPrimaryKey.value
-                    val type = foreignPrimaryKey.type
-                    val foreignTableName = getTableName(foreignInstance::class)
-                    val foreignRef = foreignPrimaryKey.name
+                    if(foreignInstance != null) {
 
-                    properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignTable = foreignTableName, foreignRef = foreignRef))
+                        val name = prop.name
+                        val value = foreignPrimaryKey.value
+                        val type = foreignPrimaryKey.type
+                        val foreignTableName = getTableName(foreignInstance::class)
+                        val foreignRef = foreignPrimaryKey.name
+
+                        properties.add(PersistentProperty(name, type, value, prop.returnType.jvmErasure, isEnum = false, isPrimary = false, isForeign = true, foreignRelation = prop.findAnnotation<Foreign>()!!.relation, foreignTable = foreignTableName, foreignRef = foreignRef))
+                    }
+                    else {
+                        properties.add(PersistentProperty(prop.name, getPropertyType(prop), prop.javaClass.getConstructor().newInstance(), prop.returnType.jvmErasure, false, false, true, prop.findAnnotation<Foreign>()!!.relation, Persistence.getTableName(prop.returnType.jvmErasure), prop.name))
+                    }
+                }
+
+        Reflected.getAllPropertiesRecursive(clazz)
+                .filter { prop -> prop.findAnnotation<Foreign>() != null }
+                .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_MANY }
+                .forEach { prop ->
+
+                    val foreignInstanceList = prop.get(instance) as List<*>?
+
+                    val name = prop.name
+                    val value = foreignInstanceList?.map { getPrimaryKey(it!!).value.toString() }?.fold("") { acc, s -> "$acc;$s" } ?: ""
+                    val kclass = prop.findAnnotation<Foreign>()!!.clazz
+
+                    val type = PersistentPropertyType.STRING
+
+                    val foreignTableName = getTableName(kclass)
+                    val foreignRef = getNameOfPrimaryKey(kclass.java.getConstructor().newInstance())
+
+                    properties.add(PersistentProperty(name, type, value, kclass, false, false, true, prop.findAnnotation<Foreign>()!!.relation, foreignTableName, foreignRef))
                 }
 
         return properties
