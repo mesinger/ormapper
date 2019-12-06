@@ -1,11 +1,8 @@
 package mesi.employee
 
 import mesi.orm.conn.DatabaseSystem
-import mesi.orm.persistence.Repository
 import mesi.orm.persistence.annotations.*
-import mesi.orm.persistence.transform.PersistentObject
-import mesi.orm.transaction.transactional
-import java.lang.RuntimeException
+import mesi.orm.persistence.context.persistenceContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -51,19 +48,25 @@ fun main(args: Array<String>) {
     val mesi = Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
     val rico = Employee(2, "rico", "pc", Gender.FEMALE, management, listOf(), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
 
-    val po = PersistentObject.from(mesi)
+    persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
+        val departmentRepo = createRepo<String, Department>()
 
-    val departmentRepo = Repository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-    val projectRepo = Repository.create<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-    val employeeRepo = Repository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-
-    transactional(listOf(departmentRepo, projectRepo, employeeRepo)) {
-        departmentRepo.save(management)
-        projectRepo.save(project1)
-        projectRepo.save(project2)
-        employeeRepo.save(mesi)
-        employeeRepo.save(rico)
+        transactional {
+            departmentRepo.save(management)
+        }
     }
+
+//    val departmentRepo = context.createRepo<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//    val projectRepo = context.createRepo<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//    val employeeRepo = context.createRepo<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
+//
+//    transactional(listOf(departmentRepo, projectRepo, employeeRepo)) {
+//        departmentRepo.save(management)
+//        projectRepo.save(project1)
+//        projectRepo.save(project2)
+//        employeeRepo.save(mesi)
+//        employeeRepo.save(rico)
+//    }
 
 //    val fetchedMesi = employeeRepo.get(1)
 //    val fetchedProject1 = projectRepo.get(1)
