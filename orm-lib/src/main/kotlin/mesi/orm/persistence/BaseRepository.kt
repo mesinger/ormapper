@@ -5,21 +5,30 @@ import mesi.orm.conn.DatabaseConnectionFactory
 import mesi.orm.conn.DatabaseSystem
 import mesi.orm.exception.ORMesiException
 import mesi.orm.persistence.annotations.Persistent
+import mesi.orm.persistence.fetch.RepositoryFetchable
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
+import mesi.orm.persistence.transform.PersistentProperty
 import mesi.orm.query.QueryBuilder
 import mesi.orm.query.QueryBuilderFactory
+import mesi.orm.query.SelectQuery
 import mesi.orm.util.Persistence
+import java.sql.ResultSet
 import kotlin.reflect.KClass
 
 /**
  * base respository, which has to be extended by the
  * user with needed primary and entity types
  */
-class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder, private val resultParser : ResultSetParser, private val entityClass : KClass<ENTITY>) : Repository<PRIMARY, ENTITY> {
+class BaseRepository<PRIMARY : Any, ENTITY : Any>
+(private val database : DatabaseConnection, private val queryBuilder: QueryBuilder, private val resultParser : ResultSetParser, private val entityClass : KClass<ENTITY>)
+    : Repository<PRIMARY, ENTITY> {
+
+    private var selectQuery : SelectQuery
 
     init {
         database.open()
+        selectQuery = queryBuilder.select().from(entityClass.java)
     }
 
     override fun save(entity: ENTITY) {
@@ -37,7 +46,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
     }
 
     override fun update(entity: ENTITY) {
-
+        TODO()
     }
 
     override fun get(id: PRIMARY): ENTITY? {
@@ -52,23 +61,76 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(private val database : Databas
 
             if(rs.next()) {
 
-                persistentObject.properties.forEach { prop ->
-                    run {
-                        val value = resultParser.parsePropertyFrom(prop, rs)
-
-                        val property = entityClass.java.getDeclaredField(prop.name)
-                        property.trySetAccessible()
-
-                        if(property.canAccess(instance)) property.set(instance, value)
-                    }
-                }
-
+                persistentObject.properties.forEach { prop -> injectPropertyFromResultSet(instance, prop, rs)}
                 return instance
 
             } else {
                 return null
             }
         }
+    }
+
+    private fun getForeign(primary : Any, clazz : KClass<*>) : Any? {
+        return clazz.java.getConstructor().newInstance()
+    }
+
+    override fun fetch(): List<ENTITY> {
+        val instance = entityClass.java.getConstructor().newInstance()
+        val persistentObject = PersistentObject.from(instance)
+
+        val entities = mutableListOf<ENTITY>()
+
+        database.select(selectQuery).use {
+            val rs = it.resultSet
+
+            while(rs.next()){
+                val entity = entityClass.java.getConstructor().newInstance()
+
+                persistentObject.getAllWithoutForeigns().forEach { injectPropertyFromResultSet(entity, it, rs) }
+                persistentObject.getForeigns().forEach {  }
+
+                entities.add(entity)
+            }
+
+            return entities
+        }
+    }
+
+    override fun getAll(): RepositoryFetchable<PRIMARY, ENTITY> {
+        selectQuery = queryBuilder.select().from(entityClass.java)
+        return this
+    }
+
+    override fun where(condition: String): RepositoryFetchable<PRIMARY, ENTITY> {
+        selectQuery = selectQuery.where(condition)
+        return this
+    }
+
+    override fun and(): RepositoryFetchable<PRIMARY, ENTITY> {
+        selectQuery = selectQuery.and()
+        return this
+    }
+
+    override fun or(): RepositoryFetchable<PRIMARY, ENTITY> {
+        selectQuery = selectQuery.or()
+        return this
+    }
+
+    private fun injectPropertyFromResultSet(instance : ENTITY, prop : PersistentProperty, rs : ResultSet) {
+        val value = resultParser.parsePropertyFrom(prop, rs)
+
+        val property = entityClass.java.getDeclaredField(prop.name)
+        property.trySetAccessible()
+
+        if(property.canAccess(instance)) property.set(instance, value)
+    }
+
+    private fun injectPropertyFromValue(instance : ENTITY, prop : PersistentProperty, value : Any) {
+
+        val property = entityClass.java.getDeclaredField(prop.name)
+        property.trySetAccessible()
+
+        if(property.canAccess(instance)) property.set(instance, value)
     }
 
     companion object Factory {

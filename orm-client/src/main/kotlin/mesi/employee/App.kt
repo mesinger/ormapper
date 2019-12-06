@@ -3,7 +3,6 @@ package mesi.employee
 import mesi.orm.conn.DatabaseSystem
 import mesi.orm.persistence.BaseRepository
 import mesi.orm.persistence.annotations.*
-import mesi.orm.persistence.transform.PersistentObject
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -37,10 +36,16 @@ fun main(args: Array<String>) {
 
     val management = Department("management")
     val mesi = Employee(1, "mesi", "inger", Gender.MALE, management,true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
-    val po = PersistentObject.from(mesi)
+    val rico = Employee(2, "rico", "pc", Gender.MALE, management,false, 500.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0), LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+
     val departmentRepo = BaseRepository.create<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
     val employeeRepo = BaseRepository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db");
 
-    departmentRepo.save(management)
-    employeeRepo.save(mesi)
+//    departmentRepo.save(management)
+//    employeeRepo.save(mesi)
+//    employeeRepo.save(rico)
+
+    val allEmployees = employeeRepo.getAll().fetch()
+    val managementEmployees = employeeRepo.getAll().where("department='management'").fetch()
+    val d = employeeRepo.getAll().where("id=1").or().where("id=2").and().where("firstName='mesi'").fetch()
 }

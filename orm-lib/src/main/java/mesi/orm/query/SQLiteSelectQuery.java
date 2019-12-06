@@ -3,7 +3,6 @@ package mesi.orm.query;
 import mesi.orm.util.Persistence;
 
 import java.util.Arrays;
-import java.util.List;
 
 class SQLiteSelectQuery extends SelectQuery {
 
@@ -35,21 +34,14 @@ class SQLiteSelectQuery extends SelectQuery {
     }
 
     @Override
-    public SelectQuery andWhere(String condition) {
-        wherePart.append(" AND " + condition);
+    public SelectQuery and() {
+        wherePart.append(" AND ");
         return this;
     }
 
     @Override
-    public SelectQuery orWhere(String condition) {
-        wherePart.append(" OR " + condition);
-        return this;
-    }
-
-    @Override
-    public SelectQuery orderBy(List<String> columns) {
-        columns.stream()
-                .forEach(column -> orderPart.append(column + ", "));
+    public SelectQuery or() {
+        wherePart.append(" OR ");
         return this;
     }
 }

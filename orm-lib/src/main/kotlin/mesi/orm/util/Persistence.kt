@@ -67,8 +67,8 @@ object Persistence {
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_ONE || prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.MANY_TO_ONE }
                 .forEach { prop ->
 
-                    val foreignInstance = prop.get(instance)
-                    val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance!!)
+                    val foreignInstance = prop.get(instance).let {it}.run { prop.returnType.jvmErasure.java.getConstructor().newInstance() }
+                    val foreignPrimaryKey = Persistence.getPrimaryKey(foreignInstance)
 
                     val name = prop.name
                     val value = foreignPrimaryKey.value

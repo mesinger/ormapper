@@ -12,6 +12,14 @@ class PersistentObject constructor(val tableName : String, val properties : Set<
         return properties.filter { it.isForeign }
     }
 
+    fun getPrimary() : PersistentProperty? {
+        return properties.find { it.isPrimary }
+    }
+
+    fun getAllWithoutForeigns() : List<PersistentProperty> {
+        return properties.filter { !it.isForeign }
+    }
+
     companion object Builder {
         fun from(instance : Any) : PersistentObject {
 
