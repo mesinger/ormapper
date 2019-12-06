@@ -4,10 +4,11 @@ import mesi.orm.conn.DatabaseSystem
 import mesi.orm.persistence.Repository
 import mesi.orm.persistence.annotations.*
 import mesi.orm.persistence.transform.PersistentObject
+import mesi.orm.transaction.transactional
+import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import javax.management.relation.Relation
 
 @Persistent
 data class Employee (
@@ -56,15 +57,13 @@ fun main(args: Array<String>) {
     val projectRepo = Repository.create<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
     val employeeRepo = Repository.create<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
 
-    val transaction = departmentRepo.getTransaction()
-
-    departmentRepo.save(management)
-//    projectRepo.save(project1)
-//    projectRepo.save(project2)
-//    employeeRepo.save(mesi)
-//    employeeRepo.save(rico)
-
-    transaction.commit()
+    transactional(listOf(departmentRepo, projectRepo, employeeRepo)) {
+        departmentRepo.save(management)
+        projectRepo.save(project1)
+        projectRepo.save(project2)
+        employeeRepo.save(mesi)
+        employeeRepo.save(rico)
+    }
 
 //    val fetchedMesi = employeeRepo.get(1)
 //    val fetchedProject1 = projectRepo.get(1)

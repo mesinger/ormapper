@@ -36,11 +36,13 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
     override fun save(entity: ENTITY) {
         val persistentObject = PersistentObject.Builder.from(entity)
 
-        if(!database.tableExists(persistentObject.tableName)) {
+        transactionState.addTask {
+            if(!database.tableExists(persistentObject.tableName)) {
 
-            val createQuery = queryBuilder.create(persistentObject.tableName)
-            persistentObject.properties.forEach { createQuery.addColumn(it) }
-            transactionState.addTask { database.createTable(createQuery) }
+                val createQuery = queryBuilder.create(persistentObject.tableName)
+                persistentObject.properties.forEach { createQuery.addColumn(it) }
+                database.createTable(createQuery)
+            }
         }
 
         val insertQuery = queryBuilder.insert(persistentObject)
