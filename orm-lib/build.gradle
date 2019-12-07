@@ -1,5 +1,5 @@
 plugins {
-
+    id 'org.jetbrains.dokka' version '0.10.0'
 }
 
 dependencies {
@@ -21,4 +21,9 @@ test {
     testLogging {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/doc"
 }
