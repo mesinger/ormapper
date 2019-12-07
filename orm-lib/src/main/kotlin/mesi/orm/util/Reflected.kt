@@ -5,7 +5,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.superclasses
 
 /**
  * static functions
@@ -25,12 +24,12 @@ object Reflected {
      * returns collection of all properties,
      * recursively over all super classes
      */
-    fun getAllPropertiesRecursive(clazz : KClass<Any>) : Collection<KProperty1<Any, *>> {
-        return mutableListOf<KProperty1<Any, *>>().apply {
-            addAll(getAllProperties(clazz))
-            clazz.superclasses.forEach { addAll(it.memberProperties as Collection<KProperty1<Any, *>>) }
-        }
-    }
+//    fun getAllPropertiesRecursive(clazz : KClass<Any>) : Collection<KProperty1<Any, *>> {
+//        return mutableListOf<KProperty1<Any, *>>().apply {
+//            addAll(getAllProperties(clazz))
+//            clazz.superclasses.forEach { addAll(it.memberProperties as Collection<KProperty1<Any, *>>) }
+//        }
+//    }
 
     /**
      * returns collections of all properties

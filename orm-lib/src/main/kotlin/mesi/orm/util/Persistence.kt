@@ -42,7 +42,7 @@ object Persistence {
         val clazz : KClass<Any> = instance::class as KClass<Any>
         val properties = mutableListOf<PersistentProperty>()
 
-        Reflected.getAllPropertiesRecursive(clazz)
+        Reflected.getAllProperties(clazz)
                 .filter { prop -> prop.findAnnotation<PersistentEnum>() != null }
                 .forEach { prop ->
                     val name = prop.name
@@ -63,7 +63,7 @@ object Persistence {
         val clazz : KClass<Any> = instance::class as KClass<Any>
         val properties = mutableListOf<PersistentProperty>()
 
-        Reflected.getAllPropertiesRecursive(clazz)
+        Reflected.getAllProperties(clazz)
                 .filter { prop -> prop.findAnnotation<Foreign>() != null }
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_ONE || prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.MANY_TO_ONE }
                 .forEach { prop ->
@@ -87,7 +87,7 @@ object Persistence {
                     }
                 }
 
-        Reflected.getAllPropertiesRecursive(clazz)
+        Reflected.getAllProperties(clazz)
                 .filter { prop -> prop.findAnnotation<Foreign>() != null }
                 .filter {prop -> prop.findAnnotation<Foreign>()!!.relation == ForeignRelation.ONE_TO_MANY }
                 .forEach { prop ->
@@ -117,7 +117,7 @@ object Persistence {
         val clazz : KClass<Any> = instance::class as KClass<Any>
         val properties = mutableListOf<PersistentProperty>()
 
-        Reflected.getAllPropertiesRecursive(clazz)
+        Reflected.getAllProperties(clazz)
                 .filter { prop -> prop.findAnnotation<Primary>() == null  }
                 .filter { prop -> prop.findAnnotation<PersistentEnum>() == null  }
                 .filter { prop -> prop.findAnnotation<PersistentTransient>() == null  }
