@@ -27,6 +27,13 @@ subprojects {
 
     dependencies {
         implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+
+        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+        testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.5.2'
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.5.2'
+        testCompile group: 'org.mockito', name: 'mockito-core', version: '3.1.0'
+        testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.1.0'
     }
 
     compileKotlin {
