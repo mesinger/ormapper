@@ -50,23 +50,15 @@ fun main(args: Array<String>) {
 
     persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
         val departmentRepo = createRepo<String, Department>()
+        val projectRepo = createRepo<Long, Project>()
+        val employeeRepo = createRepo<Long, Employee>()
 
-        transactional {
-            departmentRepo.save(management)
-        }
+        departmentRepo.save(management)
+        projectRepo.save(project1)
+        projectRepo.save(project2)
+        employeeRepo.save(mesi)
+        employeeRepo.save(rico)
     }
-
-//    val departmentRepo = context.createRepo<String, Department>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-//    val projectRepo = context.createRepo<Long, Project>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-//    val employeeRepo = context.createRepo<Long, Employee>(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db")
-//
-//    transactional(listOf(departmentRepo, projectRepo, employeeRepo)) {
-//        departmentRepo.save(management)
-//        projectRepo.save(project1)
-//        projectRepo.save(project2)
-//        employeeRepo.save(mesi)
-//        employeeRepo.save(rico)
-//    }
 
 //    val fetchedMesi = employeeRepo.get(1)
 //    val fetchedProject1 = projectRepo.get(1)

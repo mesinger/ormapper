@@ -44,4 +44,14 @@ class SQLiteCreateQuery extends CreateQuery {
                 throw new ORMesiException("unsupported type");
         }
     }
+
+    @Override
+    public String raw() {
+
+        if(tail.length() >= 2) {
+            return head.toString() + tail.toString().substring(0, tail.length() - 2) + ");";
+        } else {
+            return head.substring(0, head.length() - 2) + ");";
+        }
+    }
 }

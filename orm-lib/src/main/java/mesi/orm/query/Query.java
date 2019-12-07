@@ -11,8 +11,6 @@ public abstract class Query {
      * @return raw representation of the built sql statement
      */
     public String raw() {
-        var query = head.append(tail);
-        query.setLength(query.length() - 2);
-        return query.toString() + ");";
+        return head.toString() + tail.toString() + ");";
     }
 }

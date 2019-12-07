@@ -46,7 +46,6 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         }
 
         val insertQuery = queryBuilder.insert(persistentObject)
-
         transactionState.addTask { database.insert(insertQuery) }
     }
 
