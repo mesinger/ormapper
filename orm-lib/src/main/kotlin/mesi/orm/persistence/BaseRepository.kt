@@ -113,7 +113,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
             while(rs.next()){
                 val entity = entityClass.java.getConstructor().newInstance()
 
-                persistentObject.getAllWithoutForeigns().forEach { injectPropertyFromResultSet(entity, it, rs) }
+                persistentObject.getAllNonForeigns().forEach { injectPropertyFromResultSet(entity, it, rs) }
 //                persistentObject.getForeigns().forEach {  }
 
                 entities.add(entity)

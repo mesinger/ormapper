@@ -4,7 +4,7 @@ import kotlin.reflect.KClass
 
 /**
  * identifies a foreign persistent property
- * and their relation to another class
+ * and their [relation] to another class of type [clazz]
  */
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -13,6 +13,9 @@ annotation class Foreign(
         val clazz : KClass<*> = Any::class
 )
 
+/**
+ * types of foreign relations
+ */
 enum class ForeignRelation {
     ONE_TO_ONE,
     ONE_TO_MANY,

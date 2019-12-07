@@ -11,10 +11,10 @@ import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.transaction.RepositoryTransaction
 import mesi.orm.util.Persistence
-import java.lang.Exception
 
 /**
  * context for persistent operations with the framework
+ * this class has to be used with the [persistenceContext] type safe builder
  */
 class PersistenceContext internal constructor(
         val system : DatabaseSystem,
@@ -57,12 +57,18 @@ class PersistenceContext internal constructor(
         return repo
     }
 
+    /**
+     * wrapper for the [transactional] type safe builder
+     */
     class TransactionalWrapper {
         internal fun executeBlock(block : TransactionalWrapper.() -> Unit) = block()
         fun commit() = {}
         inline fun rollback() { throw ORMesiException("transactional rollback") }
     }
 
+    /**
+     * persistent operations performed inside of [block] will be processed transactional
+     */
     fun transactional(block : TransactionalWrapper.() -> Unit) {
 
         val wrapper = TransactionalWrapper()
@@ -80,6 +86,9 @@ class PersistenceContext internal constructor(
     }
 }
 
+/**
+ * persistent operations have to be executed inside of [block], connection to the database established by determing the [system] and [connectionString]
+ */
 fun persistenceContext(system: DatabaseSystem, connectionString: String, block : PersistenceContext.() -> Unit) {
     val context = PersistenceContext(system, connectionString)
     context.block()

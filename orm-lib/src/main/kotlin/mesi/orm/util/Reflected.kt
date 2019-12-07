@@ -11,7 +11,7 @@ import kotlin.reflect.full.memberProperties
  * used for validating persistent objects
  * and extracting informations
  */
-object Reflected {
+internal object Reflected {
 
     /**
      * checks if [Persistent] annotation is present on [o]

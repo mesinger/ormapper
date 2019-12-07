@@ -5,28 +5,36 @@ import mesi.orm.util.Persistence
 import kotlin.reflect.KClass
 
 /**
- * simple representation of persistent pojos
+ * simple representation of persistent java objects
  */
-class PersistentObject constructor(val tableName : String, val properties : Set<PersistentProperty>) {
+internal class PersistentObject constructor(val tableName : String, val properties : Set<PersistentProperty>) {
 
+    /**
+     * returns foreign properties annotated with [ForeignRelation.ONE_TO_ONE] or [ForeignRelation.MANY_TO_ONE]
+     */
     fun getForeignsSimple() : List<PersistentProperty> {
         return properties.filter { it.isForeign }.filter { it.foreignRelation == ForeignRelation.ONE_TO_ONE || it.foreignRelation == ForeignRelation.MANY_TO_ONE }
     }
 
+    /**
+     * returns foreign properties annotated with [ForeignRelation.ONE_TO_MANY]
+     */
     fun getForeignsComplex() : List<PersistentProperty> {
         return properties.filter { it.isForeign }.filter { it.foreignRelation == ForeignRelation.ONE_TO_MANY }
     }
 
+    /**
+     * returns all non foreign properties
+     */
     fun getAllNonForeigns() : List<PersistentProperty> {
         return properties.filter { !it.isForeign }
     }
 
+    /**
+     * returns the [PersistentProperty] annotated with [Primary]
+     */
     fun getPrimary() : PersistentProperty? {
         return properties.find { it.isPrimary }
-    }
-
-    fun getAllWithoutForeigns() : List<PersistentProperty> {
-        return properties.filter { !it.isForeign }
     }
 
     companion object Builder {
