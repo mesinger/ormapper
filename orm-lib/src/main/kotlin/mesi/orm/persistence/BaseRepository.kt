@@ -54,35 +54,15 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
     }
 
     override fun get(id: PRIMARY): ENTITY? {
-
-        if(cache.exists(entityClass.toString(), id.toString())) {
-            return cache.get(entityClass.toString(), id.toString()) as ENTITY?
-        }
-
-        val instance = entityClass.java.getConstructor().newInstance()
-        val primaryName = Persistence.getNameOfPrimaryKey(instance)
-
-        val query = queryBuilder.select().from(entityClass.java).where("$primaryName=$id")
-
-        database.select(query).use {
-            val rs = it.resultSet
-
-            val entity = getFromResultSet(rs)
-
-            entity?.let { cache.put(entityClass.toString(), id.toString(), entity) }
-
-            return entity as ENTITY?
-        }
-    }
-
-    override fun getTransaction(): RepositoryTransaction {
-        val transaction = BaseRepositoryTransaction()
-        transaction.begin()
-        transactionState = CurrentTransactionState(transaction)
-        return transaction
+        val primaryName = Persistence.getNameOfPrimaryKey(createEmptyInstance())
+        return getSingleEntity(id, primaryName, entityClass) as ENTITY?
     }
 
     private fun getForeign(primary : Any, primaryName : String, clazz : KClass<*>) : Any? {
+        return getSingleEntity(primary, primaryName, clazz)
+    }
+
+    private fun getSingleEntity(primary: Any, primaryName : String, clazz: KClass<*>) : Any? {
 
         if(cache.exists(clazz.toString(), primary.toString())) {
             return cache.get(clazz.toString(), primary.toString())
@@ -91,35 +71,74 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         val query = queryBuilder.select().from(clazz.java).where("$primaryName=$primary")
 
         database.select(query).use {
-
-            val entity = getFromResultSet(it.resultSet, clazz)
-
-            entity?.let { cache.put(clazz.toString(), primary.toString(), entity) }
-
-            return entity as ENTITY?
+            if(it.resultSet.next()) {
+                val entity = getFromResultSet(it.resultSet, clazz)
+                entity?.let { cache.put(clazz.toString(), primary.toString(), entity) }
+                return entity as ENTITY?
+            }
+            else {
+                return null
+            }
         }
     }
 
     override fun fetch(): List<ENTITY> {
-        val instance = entityClass.java.getConstructor().newInstance()
-        val persistentObject = PersistentObject.from(instance)
-
+        val persistentObject = PersistentObject.from(createEmptyInstance())
         val entities = mutableListOf<ENTITY>()
 
         database.select(selectQuery).use {
             val rs = it.resultSet
 
             while(rs.next()){
-                val entity = entityClass.java.getConstructor().newInstance()
-
-                persistentObject.getAllNonForeigns().forEach { injectPropertyFromResultSet(entity, it, rs) }
-//                persistentObject.getForeigns().forEach {  }
-
-                entities.add(entity)
+                val entity = getFromResultSet(rs, entityClass) as ENTITY?
+                entity?.let { entities.add(entity) }
             }
 
             return entities
         }
+    }
+
+    private fun getFromResultSet(rs : ResultSet, clazz : KClass<*> = entityClass) : Any? {
+
+        val instance = clazz.java.getConstructor().newInstance()
+        val persistentObject = PersistentObject.from(instance)
+
+        persistentObject.getAllNonForeigns().forEach { prop ->
+            val value = resultParser.parsePropertyFrom(prop, rs)
+
+            if(prop.isPrimary) {
+                if(cache.exists(clazz.toString(), value.toString())) {
+                    return cache.get(clazz.toString(), value.toString())
+                }
+            }
+
+            applyValueToInstance(instance, value!!, clazz, prop)
+        }
+
+        persistentObject.getForeignsSimple().forEach { prop->
+            var primary = resultParser.parsePropertyFrom(prop, rs)!!
+            val foreignInstance = prop.kotlinClass.java.getConstructor().newInstance()
+            val primaryName = Persistence.getNameOfPrimaryKey(foreignInstance)
+            if(primary is String)
+                primary = "'$primary'"
+
+            val fetchedForeign = getForeign(primary, primaryName, prop.kotlinClass)
+
+            applyValueToInstance(instance, fetchedForeign!!, clazz, prop)
+        }
+
+        persistentObject.getForeignsComplex().forEach { prop ->
+            val primaryListasString = (resultParser.parsePropertyFrom(prop, rs)!! as String).removePrefix(";")
+            val primariesList = if(primaryListasString != "") (primaryListasString as String).split(';') else listOf()
+
+            val foreignInstances = mutableListOf<Any>()
+
+            primariesList.forEach { primary -> foreignInstances.add(getForeign(primary, Persistence.getNameOfPrimaryKey(prop.kotlinClass.java.getConstructor().newInstance()), prop.kotlinClass)!!)}
+
+            applyValueToInstance(instance, foreignInstances, clazz, prop)
+        }
+
+        return instance
     }
 
     override fun getAll(): RepositoryFetchable<PRIMARY, ENTITY> {
@@ -142,63 +161,15 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         return this
     }
 
-    private fun injectPropertyFromResultSet(instance : ENTITY, prop : PersistentProperty, rs : ResultSet) {
-        val value = resultParser.parsePropertyFrom(prop, rs)
-
-        val property = entityClass.java.getDeclaredField(prop.name)
-        property.trySetAccessible()
-
-        if(property.canAccess(instance)) property.set(instance, value)
+    override fun getTransaction(): RepositoryTransaction {
+        val transaction = BaseRepositoryTransaction()
+        transaction.begin()
+        transactionState = CurrentTransactionState(transaction)
+        return transaction
     }
 
-    private fun injectPropertyFromValue(instance : ENTITY, prop : PersistentProperty, value : Any) {
-
-        val property = entityClass.java.getDeclaredField(prop.name)
-        property.trySetAccessible()
-
-        if(property.canAccess(instance)) property.set(instance, value)
-    }
-    private fun getFromResultSet(rs : ResultSet, clazz : KClass<*> = entityClass) : Any? {
-
-        val instance = clazz.java.getConstructor().newInstance()
-        val persistentObject = PersistentObject.from(instance)
-
-        if(rs.next()) {
-
-            persistentObject.getAllNonForeigns().forEach { prop ->
-                val value = resultParser.parsePropertyFrom(prop, rs)
-
-                applyValueToInstance(instance, value!!, clazz, prop)
-            }
-
-            persistentObject.getForeignsSimple().forEach { prop->
-                var primary = resultParser.parsePropertyFrom(prop, rs)!!
-                val foreignInstance = prop.kotlinClass.java.getConstructor().newInstance()
-                val primaryName = Persistence.getNameOfPrimaryKey(foreignInstance)
-                if(primary is String)
-                    primary = "'$primary'"
-
-                val fetchedForeign = getForeign(primary, primaryName, prop.kotlinClass)
-
-                applyValueToInstance(instance, fetchedForeign!!, clazz, prop)
-            }
-
-            persistentObject.getForeignsComplex().forEach { prop ->
-                val primaryListasString = (resultParser.parsePropertyFrom(prop, rs)!! as String).removePrefix(";")
-                val primariesList = (primaryListasString as String).split(';')
-
-                val foreignInstances = mutableListOf<Any>()
-
-                primariesList.forEach { primary -> foreignInstances.add(getForeign(primary, Persistence.getNameOfPrimaryKey(prop.kotlinClass.java.getConstructor().newInstance()), prop.kotlinClass)!!)}
-
-                applyValueToInstance(instance, foreignInstances, clazz, prop)
-            }
-
-            return instance
-
-        } else {
-            return null
-        }
+    private fun createEmptyInstance() : ENTITY {
+        return entityClass.java.getConstructor().newInstance()
     }
 
     private fun applyValueToInstance(instance : Any, value : Any, clazz: KClass<*>, prop : PersistentProperty) {

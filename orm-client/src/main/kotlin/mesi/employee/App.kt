@@ -42,22 +42,32 @@ data class Project (
 fun main(args: Array<String>) {
 
     val management = Department("management")
+    val facility = Department("facility")
     val project1 = Project(1, "project 1", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
     val project2 = Project(2, "project 2", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
+    val project3 = Project(3, "heusl putzn", LocalDateTime.of(2020, 6, 1, 12, 0, 0))
 
     val mesi = Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
     val rico = Employee(2, "rico", "pc", Gender.FEMALE, management, listOf(), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
+    val nimmervoll = Employee(3, "nimmer", "voll", Gender.FEMALE, facility, listOf(project3), false, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
 
     persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
         val departmentRepo = createRepo<String, Department>()
         val projectRepo = createRepo<Long, Project>()
         val employeeRepo = createRepo<Long, Employee>()
 
-        departmentRepo.save(management)
-        projectRepo.save(project1)
-        projectRepo.save(project2)
-        employeeRepo.save(mesi)
-        employeeRepo.save(rico)
+//        departmentRepo.save(management)
+//        departmentRepo.save(facility)
+//        projectRepo.save(project1)
+//        projectRepo.save(project2)
+//        projectRepo.save(project3)
+//        employeeRepo.save(mesi)
+//        employeeRepo.save(rico)
+//        employeeRepo.save(nimmervoll)
+
+        val fetchedMesi = employeeRepo.get(1)
+        val fetchedMesi2 = employeeRepo.getAll().where("department='management'").or().where("id=3").fetch()
+        val i = 1
     }
 
 //    val fetchedMesi = employeeRepo.get(1)

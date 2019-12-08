@@ -18,7 +18,8 @@ import mesi.orm.util.Persistence
  */
 class PersistenceContext internal constructor(
         val system : DatabaseSystem,
-        val connectionString: String
+        val connectionString: String,
+        val cache : RepositoryCache
 ) {
 
     val createdRepositories = mutableListOf<Repository<*, *>>()
@@ -48,7 +49,7 @@ class PersistenceContext internal constructor(
                 DatabaseConnectionFactory.create(system, connectionString),
                 QueryBuilderFactory.create(system),
                 ResultSetParser.create(system),
-                RepositoryCache.create(),
+                cache,
                 ENTITY::class
         )
 
@@ -90,6 +91,6 @@ class PersistenceContext internal constructor(
  * persistent operations have to be executed inside of [block], connection to the database established by determing the [system] and [connectionString]
  */
 fun persistenceContext(system: DatabaseSystem, connectionString: String, block : PersistenceContext.() -> Unit) {
-    val context = PersistenceContext(system, connectionString)
+    val context = PersistenceContext(system, connectionString, RepositoryCache.create())
     context.block()
 }
