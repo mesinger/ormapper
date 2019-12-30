@@ -2,6 +2,7 @@ package mesi.orm.persistence
 
 import mesi.orm.cache.RepositoryCache
 import mesi.orm.conn.DatabaseConnection
+import mesi.orm.exception.ORMesiException
 import mesi.orm.persistence.fetch.RepositoryFetchable
 import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.persistence.transform.PersistentObject
@@ -12,6 +13,8 @@ import mesi.orm.transaction.*
 import mesi.orm.util.Persistence
 import java.sql.ResultSet
 import kotlin.reflect.KClass
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
 
 /**
  * base respository, which has to be extended by the
@@ -173,7 +176,8 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
     }
 
     private fun applyValueToInstance(instance : Any, value : Any, clazz: KClass<*>, prop : PersistentProperty) {
-        val property = clazz.java.getDeclaredField(prop.name)
+//        val property = clazz.java.getDeclaredField(prop.name)
+        val property = clazz.memberProperties.find { it.name == prop.name }?.javaField ?: throw ORMesiException("Cannot find property ${prop.name} in class ${clazz.simpleName}")
         property.trySetAccessible()
 
         if(property.canAccess(instance)) property.set(instance, value)
