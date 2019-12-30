@@ -3,7 +3,7 @@ package mesi.orm.query;
 import mesi.orm.persistence.transform.PersistentObject;
 
 /**
- * entry point for building mesi.orm.query.Query objects
+ * interface for building mesi.orm.query.Query objects
  */
 public interface QueryBuilder {
 
@@ -24,4 +24,10 @@ public interface QueryBuilder {
      * @return insert query
      */
     InsertQuery insert(PersistentObject persistentObject);
+
+    /**
+     * @param persistentObject
+     * @return
+     */
+    UpdateQuery update(PersistentObject persistentObject);
 }

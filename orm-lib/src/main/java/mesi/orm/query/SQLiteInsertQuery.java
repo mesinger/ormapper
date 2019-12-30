@@ -31,6 +31,7 @@ class SQLiteInsertQuery extends InsertQuery {
                 .forEach(value -> tail.append(value + ", "));
 
         tail.setLength(tail.length() - 2);
+        tail.append(");");
     }
 
     private PersistentProperty mapValue(PersistentProperty property) {

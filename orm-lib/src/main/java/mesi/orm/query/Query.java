@@ -11,6 +11,6 @@ public abstract class Query {
      * @return raw representation of the built sql statement
      */
     public String raw() {
-        return head.toString() + tail.toString() + ");";
+        return head.toString() + tail.toString();
     }
 }

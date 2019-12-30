@@ -27,4 +27,11 @@ interface DatabaseModifier {
      * @return generated primary key
      */
     long insert(Query query);
+
+    /**
+     * updates an existing row
+     * with given query
+     * @param query sql query for updating
+     */
+    void update(Query query);
 }

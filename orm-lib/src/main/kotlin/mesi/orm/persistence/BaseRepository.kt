@@ -53,7 +53,13 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
     }
 
     override fun update(entity: ENTITY) {
-        TODO()
+        val persistentObject = PersistentObject.from(entity)
+        val id = persistentObject.getPrimary()!!.value as PRIMARY
+
+        if(get(id) == null) throw ORMesiException("Entity of class ${entityClass.simpleName} with id $id is not present. Use save() instead")
+
+        val updateQuery = queryBuilder.update(persistentObject)
+        transactionState.addTask { database.update(updateQuery) }
     }
 
     override fun get(id: PRIMARY): ENTITY? {

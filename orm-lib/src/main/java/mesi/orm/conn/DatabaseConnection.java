@@ -168,6 +168,24 @@ public abstract class DatabaseConnection implements DatabaseConnector, DatabaseM
         }
     }
 
+    @Override
+    public void update(Query query) {
+
+        try {
+
+            rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            rawConnection.setAutoCommit(false);
+
+            var stmt = rawConnection.createStatement();
+            stmt.executeUpdate(query.raw());
+
+            rawConnection.commit();
+
+        } catch (SQLException e) {
+            throw new ORMesiException("error while processing query " + e.getMessage());
+        }
+    }
+
     // abstract query creation functions
     protected abstract String tableExistsQuery();
 }

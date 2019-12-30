@@ -20,4 +20,9 @@ class SQLiteQueryBuilder implements QueryBuilder {
     public InsertQuery insert(PersistentObject persistentObject) {
         return new SQLiteInsertQuery(persistentObject);
     }
+
+    @Override
+    public UpdateQuery update(PersistentObject persistentObject) {
+        return new SQLiteUpdateQuery(persistentObject);
+    }
 }

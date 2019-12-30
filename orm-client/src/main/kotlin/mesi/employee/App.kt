@@ -1,6 +1,8 @@
 package mesi.employee
 
+import mesi.orm.conn.DatabaseSystem
 import mesi.orm.persistence.annotations.*
+import mesi.orm.persistence.context.persistenceContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -64,24 +66,26 @@ fun main(args: Array<String>) {
     val rico = Employee(2, "rico", "pc", Gender.FEMALE, management, listOf(), true, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
     val nimmervoll = Employee(3, "nimmer", "voll", Gender.FEMALE, facility, listOf(project3), false, 700.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0))
 
-//    persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
-//        val departmentRepo = createRepo<String, Department>()
-//        val projectRepo = createRepo<Long, Project>()
-//        val employeeRepo = createRepo<Long, Employee>()
-//
-////        departmentRepo.save(management)
-////        departmentRepo.save(facility)
-////        projectRepo.save(project1)
-////        projectRepo.save(project2)
-////        projectRepo.save(project3)
-////        employeeRepo.save(mesi)
-////        employeeRepo.save(rico)
-////        employeeRepo.save(nimmervoll)
+    persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
+        val departmentRepo = createRepo<String, Department>()
+        val projectRepo = createRepo<Long, Project>()
+        val employeeRepo = createRepo<Long, Employee>()
+
+//        departmentRepo.save(management)
+//        departmentRepo.save(facility)
+//        projectRepo.save(project1)
+//        projectRepo.save(project2)
+//        projectRepo.save(project3)
+//        employeeRepo.save(mesi)
+//        employeeRepo.save(rico)
+//        employeeRepo.save(nimmervoll)
+
+        employeeRepo.update(Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 80000.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0)))
 //
 //        val fetchedMesi = employeeRepo.get(1)
 //        val fetchedMesi2 = employeeRepo.getAll().where("department='management'").or().where("id=3").fetch()
 //        val i = 1
-//    }
+    }
 
 //    val fetchedMesi = employeeRepo.get(1)
 //    val fetchedProject1 = projectRepo.get(1)
