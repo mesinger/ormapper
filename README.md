@@ -1,5 +1,5 @@
 # lazy ormapper framework for kotlin
-Do no use this framework for production code
+Do not use this framework for production code
 
 ## Build
 ```sh
@@ -19,13 +19,17 @@ data class Department (
         @Primary val name : String
 )
 
+//...
+
+val management = Department("management")
+
 persistenceContext(DatabaseSystem.SQLITE, "jdbc:sqlite:employees.db") {
         val departmentRepo = createRepo<String, Department>()
 
         transactional {
             departmentRepo.save(management)
         }
-    }
+}
 ```
 ## Annotations
 ```kotlin
@@ -40,6 +44,6 @@ data class Employee (
         val isChef : Boolean,
         val salary : Float,
         val entryDate : LocalDate,
-        @PersistentTransient val shiftStart : LocalTime
+        @PersistentTransient val internalTimer : LocalTime
 )
 ```
