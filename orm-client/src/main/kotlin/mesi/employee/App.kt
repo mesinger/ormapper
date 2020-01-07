@@ -70,6 +70,10 @@ fun main(args: Array<String>) {
         val departmentRepo = createRepo<String, Department>()
         val projectRepo = createRepo<Long, Project>()
         val employeeRepo = createRepo<Long, Employee>()
+        val studentRepo = createRepo<Long, Student>()
+
+        studentRepo.save(Student(1, "rico", "pc", "uid"))
+        val student = studentRepo.get(1)
 
 //        departmentRepo.save(management)
 //        departmentRepo.save(facility)
@@ -80,14 +84,10 @@ fun main(args: Array<String>) {
 //        employeeRepo.save(rico)
 //        employeeRepo.save(nimmervoll)
 
-        employeeRepo.update(Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 80000.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0)))
+//        employeeRepo.update(Employee(1, "mesi", "inger", Gender.MALE, management, listOf(project1, project2), true, 80000.99f, LocalDate.of(2019, 11, 21), LocalTime.of(10, 0, 0)))
 //
 //        val fetchedMesi = employeeRepo.get(1)
-//        val fetchedMesi2 = employeeRepo.getAll().where("department='management'").or().where("id=3").fetch()
-//        val i = 1
+//        val fetchedMesi2 = employeeRepo.getAll().where("department='management'").and().where("id=1").fetch()
+        val i = 1
     }
-
-//    val fetchedMesi = employeeRepo.get(1)
-//    val fetchedProject1 = projectRepo.get(1)
-//    val fetchedMesi2 = employeeRepo.get(1)
 }
