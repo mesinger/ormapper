@@ -11,11 +11,13 @@ import mesi.orm.persistence.fetch.ResultSetParser
 import mesi.orm.query.QueryBuilderFactory
 import mesi.orm.transaction.RepositoryTransaction
 import mesi.orm.util.Persistence
+import mu.KotlinLogging
 
 /**
  * context for persistent operations with the framework
  * this class has to be used with the [persistenceContext] type safe builder
  */
+private val logger = KotlinLogging.logger {  }
 class PersistenceContext internal constructor(
         val system : DatabaseSystem,
         val connectionString: String,
@@ -81,7 +83,7 @@ class PersistenceContext internal constructor(
             wrapper.executeBlock(block)
             transactions.forEach(RepositoryTransaction::commit)
         } catch (ex : Exception) {
-            println(ex.message)
+            logger.error(ex) { "Error while processing transactions" }
             transactions.forEach(RepositoryTransaction::rollback)
         }
     }

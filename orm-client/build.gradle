@@ -7,6 +7,7 @@ plugins {
 dependencies {
     compile project(':orm-lib')
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
 }
 
 application {

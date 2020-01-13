@@ -11,6 +11,7 @@ import mesi.orm.query.QueryBuilder
 import mesi.orm.query.SelectQuery
 import mesi.orm.transaction.*
 import mesi.orm.util.Persistence
+import mu.KotlinLogging
 import java.sql.ResultSet
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
@@ -20,6 +21,7 @@ import kotlin.reflect.jvm.javaField
  * base respository, which has to be extended by the
  * user with needed primary and entity types
  */
+private val logger = KotlinLogging.logger {  }
 class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         private val database : DatabaseConnection,
         private val queryBuilder: QueryBuilder,
@@ -45,6 +47,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
                 val createQuery = queryBuilder.create(persistentObject.tableName)
                 persistentObject.properties.forEach { createQuery.addColumn(it) }
                 database.createTable(createQuery)
+                logger.info { "Created table for $entityClass" }
             }
         }
 
@@ -52,6 +55,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         transactionState.addTask {
             val id = database.insert(insertQuery)
             cache.put(entityClass.toString(), id.toString(), entity)
+            logger.info { "Saved $entity" }
         }
     }
 
@@ -65,6 +69,7 @@ class BaseRepository<PRIMARY : Any, ENTITY : Any>(
         transactionState.addTask {
             database.update(updateQuery)
             cache.put(entityClass.toString(), id.toString(), entity)
+            logger.info { "Updated $entity" }
         }
     }
 
