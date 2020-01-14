@@ -6,6 +6,11 @@ Do not use this framework for production code
 gradle clean build
 ```
 
+When using this framework in your application, you need a implementation of slf4j. If you just want to print to stdout, you can add this dependency to your application.
+```groovy
+implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+```
+
 ## Documentation
 ```sh
 gradle dokka
